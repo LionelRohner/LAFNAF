@@ -1,5 +1,8 @@
 
 
+# ADD CAUTCHY SCHWARZ INEQUALITY
+
+
 library(plm)
 
 library(RConics)
@@ -9,6 +12,45 @@ A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
                 -1,0,1,-3,
                 7,1,-2,-3), nrow = 4))
+
+
+
+
+linDep_Cautchy_Schwartz <- function(A)
+  
+  # Consists of checking whether <u,v> >= ||u|| ||v||
+  # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
+  
+  # output
+  linDepIdx = data.frame(i = numeric(), j = numeric())
+  
+  # Cauchy-Schwarzt Loop
+  for (i in 1:nrow(A)){
+    # for (j in i:nrow(A))
+    for (j in 1:nrow(A)){
+      if (i != j){
+        
+        # get norms and dot prod
+        u_norm = sqrt(sum(A[i,]^2))
+        v_norm = sqrt(sum(A[j,]^2))
+        u_v = A[i,] %*% A[j,]
+        
+        # check for strict equality
+        if (u_v == u_norm * v_norm ){
+          # mirrored duplicates should be excluded
+          linDepIdx = rbind(linDepIdx,c(i,j)) 
+        }
+      }
+    }
+  }
+  colnames(linDepIdx) = c("i","j")
+  
+  return(linDepIdx)
+linDepIdx
+
+A[-1,-1]
+
+# It should only find one
 
 A <- t(matrix(c(4,1,2,0,
               1,1,5,15,
