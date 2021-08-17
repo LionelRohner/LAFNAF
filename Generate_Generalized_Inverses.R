@@ -10,9 +10,16 @@ library(RConics)
 
 A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
+                1,2,3,4,
+                1,2,3,4,
+                1,2,3,4,
                 -1,0,1,-3,
                 7,1,-2,-3), nrow = 4))
 
+
+A <- t(matrix(c(1,2,3,
+                -1,0,1,
+                7,1,-2), nrow = 3))
 
 
 
@@ -20,105 +27,140 @@ linDep_Cautchy_Schwartz <- function(A){
   # Consists of checking whether <u,v> >= ||u|| ||v||
   # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
   
-  # output
-  linDepIdx = data.frame(i = numeric(), j = numeric())
+  
+  # By transposing the matrix here, the algo needs to know whether the idx
+  # output is meant for the row or col space!!!
+  
+  # # Check whether there are more rows or cols, then choose shorter space
+  # # This reduces the # of iterations in the double loop
+  # if(ncol(A) > nrow(A)){
+  #   A = t(A)
+  # } 
+  
+  # output container
+  linDepIdx = c()
   
   # Cauchy-Schwarzt Loop
   for (i in 1:nrow(A)){
     for (j in i:nrow(A)){
       if (i != j){
         
-        # get norms and dot prod
+        # compute norms and dot prod of the span of the row/col space
         u_norm = sqrt(sum(A[i,]^2))
         v_norm = sqrt(sum(A[j,]^2))
         u_v = A[i,] %*% A[j,]
         
-        # check for strict equality
+        # check for strict equality to find lin. dependent rows/cols
         if (u_v == u_norm * v_norm ){
           # mirrored duplicates should be excluded
-          linDepIdx = rbind(linDepIdx,c(i,j)) 
+          linDepIdx = rbind.data.frame(linDepIdx,c(i,j)) 
         }
       }
     }
   }
-  colnames(linDepIdx) = c("i","j")
   
-  if (nrow(linDepIdx) == 0){
+  # output construction
+  if (is.null(nrow(linDepIdx))){
     message("No linear dependent cols/rows were found!")
-    return(linDepIdx)
+    return(NULL)
   } else {
+    colnames(linDepIdx) = c("i","j")
     message("Linear combinations of cols/rows were found!")
     return(linDepIdx)
   }
 }
+
+
+generalized_Inverse <- function(A){
   
-
-for (i in 1:nrow(A)){
-  for (j in i:nrow(A)){
-  message(i,", ",j)}}
-
-linDep_Cautchy_Schwartz(A)
+  ### step 1 : Find a LIN submatrix of order rxr 
+  message("Step 1 : Find a LIN submatrix W of order rxr in A!")
   
-
-A[-1,-1]
-
-# It should only find one
-
-A <- t(matrix(c(4,1,2,0,
-              1,1,5,15,
-              3,1,3,5), ncol = 3))
-
-
-A <- t(matrix(c(3,1,3,5,
-                1,1,1,1,
-                1,1,1,1), ncol = 3))
-
-
-
-
-# step 1 : Find a LIN submatrix of order rxr 
-
-
-# cols = setdiff(1:ncol(A),detect.lindep(A,suppressPrint = T))
-# rows = setdiff(1:nrow(A),detect.lindep(t(A), suppressPrint = T))
-
-q <- qr(A)
-A_LIN <- A[,q$pivot[seq(q$rank)]]
-
-
-
-# THATS REALLY BAD
-
-if (nrow(A_LIN) > ncol(A_LIN)){
-  rows <- 1:ncol(A_LIN)
-  cols <- 1:ncol(A_LIN)
-} else {
-  cols <- 1:nrow(A_LIN)
-  rows <- 1:nrow(A_LIN)
+  # All idxs in the second col should be lin. dep. with some vecs in the first col
+  # Hence, removing those entries should guarantee NON-singularity of A
+  rmIdx <- unique(linDep_Cautchy_Schwartz(A)$j)
+  
+  # Check whether A is full rank anyways
+  if (is.null(rmIdx)){
+    W = A
+  } else {
+    # make matrix square
+    diff_row_col = abs((nrow(A)-length(rmIdx))-ncol(A))
+    W <- A[-rmIdx, -diff_row_col]
+  }
+  
+  # check assumptions for non-singularity
+  if (det(W) == 0){
+    message("Hope that never happens ;)")
+    return(NULL)
+  }
+  
+  ### step 2 : (W^-1)^T
+  message("Step 2 : (W^-1)^T!")
+  
+  # create adjoint matrix - adjoint() doesnt work for 2x2
+  if (dim(W)[1] == 2){
+    adj_W = -1*W
+    diag(adj_W) = rev(diag(W))
+  } else {
+    adj_W = adjoint(W)
+  }
+  
+  transp_inv_W <- t(adj_W/det(W))
+  
+  ### step 3 : replace elements of A with (W^-1)^T
+  message("Step 3 : Project rows/cols of (W^-1)^T into a a zero matrix A0 of order dim(A)!")
+  
+  # Again, if A is non-singular from scratch skip Step 3
+  if (is.null(rmIdx)){
+    A0 = transp_inv_W
+  } else{
+    A0 <- 0*A
+    A0[-rmIdx, -diff_row_col] = transp_inv_W
+    
+  }
+  
+  
+  ### step 4 : t(A)
+  message("Step 3 : G = A0^T!")
+  
+  G <- t(A0)
+  
+  return(G)
 }
 
-# should be rxr
-W <- A_LIN[rows,cols]
-
-# step 2 : (W^-1)^T
-
-# create adjoint matrix - adjoint() doesnt work for 2x2
-if (dim(W)[1] == 2){
-  adj_W = -1*W
-  diag(adj_W) = rev(diag(W))
-} else {
-  adj_W = adjoint(W)
+check_Penrose_Cond <- function(A,
+                               G,
+                               all_Penrose_check = F,
+                               digits = 2){
+  
+  message("Disclaimer: All matrices are transformed to pure integer matrices first, so consider that...\n")
+  
+  if (all_Penrose_check == F){
+    Penrose_1 = all(round(A%*%G%*%A,2) == A)
+    message("AGA=A is ", Penrose_1)
+    return(Penrose_1)
+  } else{
+    Penrose_1 = all(round(A%*%G%*%A) == A)
+    message("AGA = A is ", Penrose_1)
+    
+    Penrose_2 = all(round(G%*%A%*%G,digits = digits) == round(G,digits = digits))
+    message("GAG = G is ", Penrose_2)
+    
+    Penrose_3 = all(round(A%*%G) == t(round(A%*%G)))
+    message("AG = (AG)' is ", Penrose_3)
+    
+    Penrose_4 = all(round(G%*%A) == t(round(G%*%A)))
+    message("GA = (GA)' is ", Penrose_4)
+    
+    return(all(Penrose_1,Penrose_2,Penrose_3,Penrose_4))
+  }
 }
 
-transp_inv_W <- t(adj_W/det(W))
 
-# step 3 : replace elements of A with (W^-1)^T
-A_mod <- 0*A
-A_mod[rows,cols] = transp_inv_W
+G <- generalized_Inverse(A)
 
+check_Penrose_Cond(A,G, all_Penrose_check = T)
 
-# step 4 : t(A)
-G <- t(A_mod)
+round(G%*%A%*%G,2) == round(G,2)
 
-# Test
-A%*%G%*%A
