@@ -25,8 +25,7 @@ linDep_Cautchy_Schwartz <- function(A){
   
   # Cauchy-Schwarzt Loop
   for (i in 1:nrow(A)){
-    # for (j in i:nrow(A))
-    for (j in 1:nrow(A)){
+    for (j in i:nrow(A)){
       if (i != j){
         
         # get norms and dot prod
@@ -53,6 +52,10 @@ linDep_Cautchy_Schwartz <- function(A){
   }
 }
   
+
+for (i in 1:nrow(A)){
+  for (j in i:nrow(A)){
+  message(i,", ",j)}}
 
 linDep_Cautchy_Schwartz(A)
   
