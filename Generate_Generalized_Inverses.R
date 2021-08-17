@@ -16,8 +16,7 @@ A <- t(matrix(c(1,2,3,4,
 
 
 
-linDep_Cautchy_Schwartz <- function(A)
-  
+linDep_Cautchy_Schwartz <- function(A){
   # Consists of checking whether <u,v> >= ||u|| ||v||
   # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
   
@@ -45,8 +44,18 @@ linDep_Cautchy_Schwartz <- function(A)
   }
   colnames(linDepIdx) = c("i","j")
   
-  return(linDepIdx)
-linDepIdx
+  if (nrow(linDepIdx) == 0){
+    message("No linear dependent cols/rows were found!")
+    return(linDepIdx)
+  } else {
+    message("Linear combinations of cols/rows were found!")
+    return(linDepIdx)
+  }
+}
+  
+
+linDep_Cautchy_Schwartz(A)
+  
 
 A[-1,-1]
 
