@@ -3,10 +3,6 @@
 # ADD CAUTCHY SCHWARZ INEQUALITY
 
 
-library(plm)
-
-library(RConics)
-
 
 A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
@@ -131,7 +127,7 @@ generalized_Inverse <- function(A){
   ### step 2 : (W^-1)^T
   message("Step 2 : (W^-1)^T!")
   
-  # create adjoint matrix - adjoint() doesnt work for 2x2
+  # create adjugate matrix - adjugate() doesnt work for 2x2
   if (dim(W)[1] == 2){
     adj_W = -1*W
     diag(adj_W) = rev(diag(W))
