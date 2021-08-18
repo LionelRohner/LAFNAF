@@ -90,8 +90,15 @@ linDep_Cautchy_Schwartz <- function(A){
         v_norm = sqrt(sum(A[j,]^2))
         u_v = A[i,] %*% A[j,]
         
+        
+        print("it")
+        print(round(u_norm) * round(v_norm))
+        print(u_v)
+        
+        
         # check for strict equality to find lin. dependent rows/cols
-        if (u_v == u_norm * v_norm ){
+        # if (isTRUE(all.equal(u_v == u_norm * v_norm, round(u_v) == round(u_norm) * round(v_norm)))){
+        if (u_v == u_norm * v_norm){
           # mirrored duplicates should be excluded
           linDepIdx = rbind.data.frame(linDepIdx,c(i,j)) 
         }
@@ -111,7 +118,6 @@ linDep_Cautchy_Schwartz <- function(A){
 }
 
 linDep_Cautchy_Schwartz(A)
-
 
 adjugate <- function(A){
   
