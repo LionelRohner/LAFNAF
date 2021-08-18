@@ -1,2 +1,2 @@
-# Generalized_Inverse_Algo
-Algorithm that creates generalized inverses of a matrix
+# LAFTNAF_BHTA
+Linear Algebra Functions That Nobody Asked For, But Here They Are 
