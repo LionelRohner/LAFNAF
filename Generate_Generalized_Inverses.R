@@ -3,6 +3,11 @@
 # ADD CAUTCHY SCHWARZ INEQUALITY
 
 
+A <- t(matrix(c(1,2,3,4,
+                1,2,3,4,
+                1,2,3,4,
+                1,2,3,4),nrow = 4))
+
 
 A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
@@ -36,29 +41,33 @@ A <- t(matrix(c(1,2,3,
 
 singular_Value_Decomposition <- function(A){
   # A = P [D 0] Q'
-  P
+  return(NULL)
 }
 
-rank_Matrix <- function(A){
-  
-  # if A is mxn with m != n, then the larger (be it rows or cols) will be lin dep!
-  if (ncol(A) > nrow(A)){
-    A = t(A)
-  }
-  
-  # lin.dep indices
-  CS_indices <- unique(linDep_Cautchy_Schwartz(A)$j)
-  print(CS_indices)
-  # if CS_indices is empty, A is full-rank, hence rank = nrow(A) = ncol(A)
-  if (is.null(CS_indices)){
-    message("Matrix is full-rank!")
-    return(nrow(A))
-  } else {
-    # not full rank situation, due to transposition, nrow(A) > ncol(A)
-    rank = nrow(A)-length(CS_indices)
-    message("Matrix has order ", nrow(A),"x",ncol(A), " and rank ", rank)
-    return(rank)
-  }
+eigen(A)$values > 1e-12
+
+
+rank_Matrix <- function(A, tol = 1e-12){
+  return(sum(eigen(A)$values > tol))
+  # 
+  # # if A is mxn with m != n, then the larger (be it rows or cols) will be lin dep!
+  # if (ncol(A) > nrow(A)){
+  #   A = t(A)
+  # }
+  # 
+  # # lin.dep indices
+  # CS_indices <- unique(linDep_Cautchy_Schwartz(A)$j)
+  # print(CS_indices)
+  # # if CS_indices is empty, A is full-rank, hence rank = nrow(A) = ncol(A)
+  # if (is.null(CS_indices)){
+  #   message("Matrix is full-rank!")
+  #   return(nrow(A))
+  # } else {
+  #   # not full rank situation, due to transposition, nrow(A) > ncol(A)
+  #   rank = nrow(A)-length(CS_indices)
+  #   message("Matrix has order ", nrow(A),"x",ncol(A), " and rank ", rank)
+  #   return(rank)
+  # }
 }
 
 

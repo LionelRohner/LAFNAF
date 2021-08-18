@@ -12,7 +12,7 @@ mpow <- function(A, n){
 }
 
 
-# Cautchy-Schwartz-Inequality to Identify Linear Dependent Cols/Ro --------
+# Cautchy-Schwartz-Inequality to Identify Linear Dependent Cols/Rows ------
 
 linDep_Cautchy_Schwartz <- function(A){
   # Consists of checking whether <u,v> >= ||u|| ||v||
