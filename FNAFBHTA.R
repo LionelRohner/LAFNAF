@@ -180,5 +180,25 @@ check_Penrose_Cond <- function(A,
 }
 
 
+# Inverse of Matrix (Square) ----------------------------------------------
+
+inverse <- function(A){
+  # Check for squaresness
+  if (nrow(A) != ncol(A)){
+    message("Matrix is not invertible")
+    return(NULL)
+  }
+  
+  # check for singularity
+  if (det(A) == 0){
+    message("Matrix is not invertible")
+    return(NULL)
+  }
+  
+  # invert!
+  adjA = adjugate(A)
+  return(adjA*det(A)^-1)
+}
+
 
 

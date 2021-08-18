@@ -8,9 +8,21 @@ A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
                 1,2,3,4,
                 1,2,3,4,
-                1,2,3,4,
                 -1,0,1,-3,
-                7,1,-2,-3), nrow = 4))
+                7,1,-2,-3,
+                1,2,3,4,
+                1,2,3,4,
+                1,2,3,4,
+                1,2,3,4), nrow = 4))
+
+
+A <- t(matrix(c(1,-3,5,
+                0,1,7,
+                2,-4,28,
+                3,-13,0,
+                4,-14,-3,
+                5,-9,30,
+                6,2,173), nrow = 3))
 
 A <- t(matrix(c(1,2,3, 4,-2,
                 -1,0,1,4,-7,
@@ -18,16 +30,39 @@ A <- t(matrix(c(1,2,3, 4,-2,
                 1,0,10,2,0,
                 213,1,8,6,4), nrow = 5))
 
-
-
-
-
-
 A <- t(matrix(c(1,2,3,
                 -1,0,1,
                 7,1,-2), nrow = 3))
 
+singular_Value_Decomposition <- function(A){
+  # A = P [D 0] Q'
+  P
+}
 
+rank_Matrix <- function(A){
+  
+  # if A is mxn with m != n, then the larger (be it rows or cols) will be lin dep!
+  if (ncol(A) > nrow(A)){
+    A = t(A)
+  }
+  
+  # lin.dep indices
+  CS_indices <- unique(linDep_Cautchy_Schwartz(A)$j)
+  print(CS_indices)
+  # if CS_indices is empty, A is full-rank, hence rank = nrow(A) = ncol(A)
+  if (is.null(CS_indices)){
+    message("Matrix is full-rank!")
+    return(nrow(A))
+  } else {
+    # not full rank situation, due to transposition, nrow(A) > ncol(A)
+    rank = nrow(A)-length(CS_indices)
+    message("Matrix has order ", nrow(A),"x",ncol(A), " and rank ", rank)
+    return(rank)
+  }
+}
+
+
+rank_Matrix(A)
 
 linDep_Cautchy_Schwartz <- function(A){
   # Consists of checking whether <u,v> >= ||u|| ||v||
@@ -50,7 +85,6 @@ linDep_Cautchy_Schwartz <- function(A){
   for (i in 1:nrow(A)){
     for (j in i:nrow(A)){
       if (i != j){
-        
         # compute norms and dot prod of the span of the row/col space
         u_norm = sqrt(sum(A[i,]^2))
         v_norm = sqrt(sum(A[j,]^2))
@@ -75,6 +109,8 @@ linDep_Cautchy_Schwartz <- function(A){
     return(linDepIdx)
   }
 }
+
+linDep_Cautchy_Schwartz(A)
 
 
 adjugate <- function(A){
