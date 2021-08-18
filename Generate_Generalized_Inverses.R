@@ -16,6 +16,16 @@ A <- t(matrix(c(1,2,3,4,
                 -1,0,1,-3,
                 7,1,-2,-3), nrow = 4))
 
+A <- t(matrix(c(1,2,3, 4,-2,
+                -1,0,1,4,-7,
+                7,1,-2,4,1,
+                1,0,10,2,0,
+                213,1,8,6,4), nrow = 5))
+
+
+
+
+
 
 A <- t(matrix(c(1,2,3,
                 -1,0,1,
@@ -71,6 +81,29 @@ linDep_Cautchy_Schwartz <- function(A){
 }
 
 
+adjugate <- function(A){
+  
+  n = nrow(A)
+  m = ncol(A)
+  
+  if (n != m){
+    message("Matrix must be square!")
+    return(NULL)
+  }
+  
+  # create emtpy cofactor matrix
+  C = matrix(NA,nrow = n, ncol = m)
+  
+  # populate the cofactor matrix
+  for (i in 1:n){
+    for (j in 1:m){
+      C[i,j] = (-1)^(i+j)*det(A[-i,-j])
+    }
+  }
+  
+  return(t(C))
+}
+
 generalized_Inverse <- function(A){
   
   ### step 1 : Find a LIN submatrix of order rxr 
@@ -103,7 +136,7 @@ generalized_Inverse <- function(A){
     adj_W = -1*W
     diag(adj_W) = rev(diag(W))
   } else {
-    adj_W = adjoint(W)
+    adj_W = adjugate(W)
   }
   
   transp_inv_W <- t(adj_W/det(W))

@@ -62,6 +62,32 @@ linDep_Cautchy_Schwartz <- function(A){
 }
 
 
+
+# Create an Adjugate Matrix (transpose of a cofactor matrix) --------------
+
+adjugate <- function(A){
+  
+  n = nrow(A)
+  m = ncol(A)
+  
+  if (n != m){
+    message("Matrix must be square!")
+    return(NULL)
+  }
+  
+  # create emtpy cofactor matrix
+  C = matrix(NA,nrow = n, ncol = m)
+  
+  # populate the cofactor matrix
+  for (i in 1:n){
+    for (j in 1:m){
+      C[i,j] = (-1)^(i+j)*det(A[-i,-j])
+    }
+  }
+  
+  return(t(C))
+}
+
 # Create generalized inverse from a mxn matrix ----------------------------
 
 generalized_Inverse <- function(A){
@@ -96,7 +122,7 @@ generalized_Inverse <- function(A){
     adj_W = -1*W
     diag(adj_W) = rev(diag(W))
   } else {
-    adj_W = adjoint(W)
+    adj_W = adjugate(W)
   }
   
   transp_inv_W <- t(adj_W/det(W))
@@ -152,3 +178,7 @@ check_Penrose_Cond <- function(A,
     return(all(Penrose_1,Penrose_2,Penrose_3,Penrose_4))
   }
 }
+
+
+
+
