@@ -39,39 +39,29 @@ A <- t(matrix(c(1,2,3,
                 -1,0,1,
                 7,1,-2), nrow = 3))
 
+A <- t(matrix(c(2,2,2,
+                -2,2,-2,
+                0,4,0), nrow = 3))
+
+# create P
+P <- orthogonalize(A)
+
+# create Q
+Q <- orthogonalize(t(A))
+
+eigenVal <- eigen(P)$values
+
+D <- matrix(0,nrow = length(eigenVal), ncol = length(eigenVal))
+diag(D) <- sqrt(eigenVal)
+
+P%*%D%*%t(Q)
+
 singular_Value_Decomposition <- function(A){
-  # A = P [D 0] Q'
-  return(NULL)
-}
-
-eigen(A)$values > 1e-12
-
-
-rank_Matrix <- function(A, tol = 1e-12){
-  return(sum(eigen(A)$values > tol))
-  # 
-  # # if A is mxn with m != n, then the larger (be it rows or cols) will be lin dep!
-  # if (ncol(A) > nrow(A)){
-  #   A = t(A)
-  # }
-  # 
-  # # lin.dep indices
-  # CS_indices <- unique(linDep_Cautchy_Schwartz(A)$j)
-  # print(CS_indices)
-  # # if CS_indices is empty, A is full-rank, hence rank = nrow(A) = ncol(A)
-  # if (is.null(CS_indices)){
-  #   message("Matrix is full-rank!")
-  #   return(nrow(A))
-  # } else {
-  #   # not full rank situation, due to transposition, nrow(A) > ncol(A)
-  #   rank = nrow(A)-length(CS_indices)
-  #   message("Matrix has order ", nrow(A),"x",ncol(A), " and rank ", rank)
-  #   return(rank)
-  # }
+  
 }
 
 
-rank_Matrix(A)
+
 
 linDep_Cautchy_Schwartz <- function(A){
   # Consists of checking whether <u,v> >= ||u|| ||v||
