@@ -1,14 +1,14 @@
 
 
-# Some matrices
+# ADD CAUTCHY SCHWARZ INEQUALITY
 
-# lin dep
+
 A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
                 1,2,3,4,
                 1,2,3,4),nrow = 4))
 
-# lin dep rect
+
 A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
                 1,2,3,4,
@@ -20,7 +20,7 @@ A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
                 1,2,3,4), nrow = 4))
 
-# lin dep (row space)
+
 A <- t(matrix(c(1,-3,5,
                 0,1,7,
                 2,-4,28,
@@ -29,52 +29,36 @@ A <- t(matrix(c(1,-3,5,
                 5,-9,30,
                 6,2,173), nrow = 3))
 
-# full rank 5x5
 A <- t(matrix(c(1,2,3, 4,-2,
                 -1,0,1,4,-7,
                 7,1,-2,4,1,
                 1,0,10,2,0,
                 213,1,8,6,4), nrow = 5))
 
-# full rank 3x3
 A <- t(matrix(c(1,2,3,
                 -1,0,1,
                 7,1,-2), nrow = 3))
 
-# lin dep 3x3 (Row 1 + Row 2 == Row 3)
 A <- t(matrix(c(2,2,2,
                 -2,2,-2,
                 0,4,0), nrow = 3))
 
-svd(A)$v
-
-
-
-
-P%*%D%*%t(Q)
-v <- svd(A)
-diag(D)
-v$u%*%%*%t(v$v)
-
-
-
-# create P (left signular vectors)
+# create P
 P <- orthogonalize(A)
 
-# create Q (right-singular vectors)
+# create Q
 Q <- orthogonalize(t(A))
 
-# get eigenvalues
-eigenVal <- eigen(A%*%t(A))$values
+eigenVal <- eigen(P)$values
 
-# create diagonal matrix of signular values
 D <- matrix(0,nrow = length(eigenVal), ncol = length(eigenVal))
 diag(D) <- sqrt(eigenVal)
 
-# output generation
-res <- list(P = P,D = D, Q = Q)
+P%*%D%*%t(Q)
 
-message("Warning, there may be sign ambiguity in singular vectors!!!")
+singular_Value_Decomposition <- function(A){
+  
+}
 
 
 

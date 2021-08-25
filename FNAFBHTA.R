@@ -238,5 +238,43 @@ rank_Matrix <- function(A, tol = 1e-12){
   # }
 }
 
-orthogonalize
+
+# Orthogonalize Matrix ----------------------------------------------------
+
+orthogonalize <- function(A){
+  preQ = A%*%t(A)
+  Q = eigen(preQ, symmetric = T)$vectors
+  for (row in 1:nrow(Q)){
+    # Normalize Rows
+    Q[row,] = 1/sqrt(c(Q[row,]%*%Q[row,]))*c(Q[row,])
+  }
+  return(Q)
+}
+
+
+# SVD ---------------------------------------------------------------------
+
+
+singular_Value_Decomposition <- function(A){
+  # create P (left signular vectors)
+  P <- orthogonalize(A)
+  
+  # create Q (right-singular vectors)
+  Q <- orthogonalize(t(A))
+  
+  # get eigenvalues
+  eigenVal <- eigen(A%*%t(A))$values
+  
+  # create diagonal matrix of signular values
+  D <- matrix(0,nrow = length(eigenVal), ncol = length(eigenVal))
+  diag(D) <- sqrt(eigenVal)
+  
+  # output generation
+  res <- list(P = P,D = D, Q = Q)
+  
+  message("Warning, there may be sign ambiguity in singular vectors!!!")
+  
+  return(res)
+}
+
 
