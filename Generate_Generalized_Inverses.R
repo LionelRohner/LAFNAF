@@ -46,10 +46,17 @@ A <- t(matrix(c(2,2,2,
                 -2,2,-2,
                 0,4,0), nrow = 3))
 
-svd(A)$v
+# full rank - all positive entries
+A <- t(matrix(c(2,0,2,
+                3,4,5,
+                17,13,0), nrow = 3))
+
+# full rank - positive
+A <- t(matrix(c(6,1,
+                2,3), nrow = 2))
 
 
-
+eigen(A)
 
 P%*%D%*%t(Q)
 v <- svd(A)
