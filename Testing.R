@@ -51,7 +51,12 @@ A <- t(matrix(c(2,0,2,
                 3,4,5,
                 17,13,0), nrow = 3))
 
-# full rank - positive
+# from p.126 (matrix book) --> works for UDU-1
+A <- t(matrix(c(-1,-2,-2,
+                1,2,1,
+                -1,-1,-1), nrow = 3))
+
+# full rank - positive 
 A <- t(matrix(c(3,1,
                 0,2), nrow = 2))
 
@@ -70,21 +75,29 @@ fastExp <- function(A){
   
 }
 
-# create UDU
+canonical_form <- function(A){
+  # create UDU
+  
+  # create U
+  eign = eigen(A)
+  U = eign$vectors
+  
+  # create D
+  D <- matrix(0,nrow = length(eign$values), ncol = length(eign$values))
+  diag(D) = eign$values
+  
+  # create U-1
+  U_inv = adjugate(U)*1/det(U)
+  
+  # output
+  res <- list(U = U, D = D, U_inv = U_inv)
+  
+  # message(all(round(U%*%D%*%U_inv) == A))
+  
+  return(res) 
+}
 
-# create U
-eign = eigen(A)
-U = eign$vectors
-
-# create D
-D <- matrix(0,nrow = length(eign$values), ncol = length(eign$values))
-diag(D) = eign$values
-
-# 
-U_inv = adjugate(U)*1/det(U)
-
-
-U%*%D%*%U_inv
+canonical_form(A)
 
 # SVD --> Add sign checker ------------------------------------------------
 
