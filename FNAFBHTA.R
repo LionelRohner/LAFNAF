@@ -5,12 +5,66 @@
 # Matrix Power ------------------------------------------------------------
 
 mpow <- function(A, n){
+  # uglllyyyy
+  n = n-1
+  
+  if(n == 0){
+    return(A)
+  } else if (n == -1){
+    # return identity matrix
+    I <- matrix(0,nrow = nrow(A), ncol = ncol(A))
+    diag(I) = rep(1,nrow(A))
+    return(I)
+  }
+  
   A_to_the_i <- A
-  for (i in 1:n-1){
+  for (i in 1:n){
     A_to_the_i <- A%*%A_to_the_i
   }; return(A_to_the_i)
 }
 
+
+
+# Canonical Form (A = UDU^-1 ----------------------------------------------
+
+canonical_form <- function(A){
+  # create UDU
+  
+  # create U
+  eign = eigen(A)
+  U = eign$vectors
+  
+  # create D
+  D <- matrix(0,nrow = length(eign$values), ncol = length(eign$values))
+  diag(D) = eign$values
+  
+  # create U-1
+  U_inv = adjugate(U)*1/det(U)
+  
+  # output
+  res <- list(U = U, D = D, U_inv = U_inv)
+  return(res) 
+  
+  # message(all(round(U%*%D%*%U_inv) == A))
+}
+
+
+
+# Fast Exponentiation Using Canonical Form --------------------------------
+
+fastExp <- function(A,p){
+  UDU = canonical_form(A)
+  
+  # fast exponentiation of eigenvalues
+  D <- UDU$D
+  D_to_the_p = diag(D)^p
+  
+  # calculate UD^pU^-1
+  # U doesnt have to be included in the power calc, because A = UDU^-1, thus A^2 = UDU^-1UDU^-1, which is UDDU^-1
+  diag(D) = D_to_the_p
+  
+  return(UDU$U%*%D%*%UDU$U_inv)
+}
 
 # Cautchy-Schwartz-Inequality to Identify Linear Dependent Cols/Rows ------
 
@@ -415,6 +469,8 @@ plotMatrixTransformation <- function(A,v,
   
   # input vector
   arrows(0,0,v[1],v[2], length = 0.05, col = rgb(0.8,0,0,0.8))
+  text(v[1],v[2]+round(offset/2),paste("[",v[1],v[2],"]"),
+       col = rgb(0.8,0,0,0.8), cex = 0.75)
   
   # plot origin and tip of vec
   points(0,0, pch = 16, cex = 0.7,)
@@ -432,7 +488,7 @@ plotMatrixTransformation <- function(A,v,
   # find new boundaries 
   v_trans = A%*%v
   if (max(v_trans) > maxMat){
-    maxMat = max(v_trans)
+    maxMat = max(v_trans) + offset
   }
   
   if (splitPlot){
@@ -483,7 +539,8 @@ plotMatrixTransformation <- function(A,v,
   
   # input vector transformed
   arrows(0,0,v_trans[1],v_trans[2], length = 0.05, col = rgb(0.5,0,0.8,0.8))
-  
+  text(v_trans[1],v_trans[2]+round(offset/2),paste("[",v_trans[1],v_trans[2],"]"),
+       col = rgb(0.5,0,0.8,0.8), cex = 0.75)
   
   # legend
   legend("bottomright", c("Basis","Vector y (Ax=y)"),
@@ -494,4 +551,6 @@ plotMatrixTransformation <- function(A,v,
   # restore par settings to default
   par(mfrow = c(1,1))
 }
+
+plotMatrixTransformation(A,c(1,3),offset = 2)
 

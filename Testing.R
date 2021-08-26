@@ -71,33 +71,8 @@ A <- t(matrix(c(0,-1,
 
 
   
-fastExp <- function(A){
-  
-}
 
-canonical_form <- function(A){
-  # create UDU
-  
-  # create U
-  eign = eigen(A)
-  U = eign$vectors
-  
-  # create D
-  D <- matrix(0,nrow = length(eign$values), ncol = length(eign$values))
-  diag(D) = eign$values
-  
-  # create U-1
-  U_inv = adjugate(U)*1/det(U)
-  
-  # output
-  res <- list(U = U, D = D, U_inv = U_inv)
-  
-  # message(all(round(U%*%D%*%U_inv) == A))
-  
-  return(res) 
-}
 
-canonical_form(A)
 
 # SVD --> Add sign checker ------------------------------------------------
 
