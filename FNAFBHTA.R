@@ -216,7 +216,7 @@ function(A){
 # Rank --------------------------------------------------------------------
 
 rank_Matrix <- function(A, tol = 1e-12){
-  return(sum(Re(eigen(A)$values) > tol))
+  return(sum(abs(Re(eigen(A)$values)) > tol))
   
   # # if A is mxn with m != n, then the larger (be it rows or cols) will be lin dep!
   # if (ncol(A) > nrow(A)){
@@ -277,4 +277,97 @@ singular_Value_Decomposition <- function(A){
   return(res)
 }
 
+
+
+# Plotting Eigenvectors from 2x2 Matrix -----------------------------------
+
+plotEigenVec <- function(A,
+                         offset = 1,
+                         plotBasisVecs = T,
+                         plotSpan = T,
+                         plotTransBasis = T){
+  
+  # assumptions for function:
+  if (all(dim(A) != 2)){
+    message("A is not 2x2. Exiting...")
+    return(NULL)
+  }
+  
+  par(pty="s")
+  
+  maxMat = max(A) + offset
+  
+  plot(1, type = "n",                        
+       xlab = "", ylab = "",
+       xlim = c(-maxMat, maxMat), ylim = c(-maxMat, maxMat),
+       main = paste("Eigenvalues = ",eigen(A)$values), cex.main = 0.75)
+  grid()
+  
+  # basis vectors
+  if (plotBasisVecs){
+    arrows(0,0,0,1, length = 0.05)
+    arrows(0,0,1,0, length = 0.05)
+  }
+  
+  # span basis vectors
+  arrows(0,-1*2*maxMat,0,1*2*maxMat,
+         length = 0.05, col = rgb(0,0,0,0.3), code = 0, lty = 2)
+  arrows(-1*2*maxMat,0,1*2*maxMat,0,
+         length = 0.05, col = rgb(0,0,0,0.3), code = 0, lty = 2)
+  
+  # transformed basis vectors
+  if (plotTransBasis){
+    arrows(0,0,A[1,1],A[2,1], length = 0.05, col = rgb(0,0,0.8,0.7))
+    arrows(0,0,A[1,2],A[2,2], length = 0.05, col = rgb(0,0,0.8,0.7))
+  }
+  
+  # span transformed basis vectors
+  if (plotSpan){
+    arrows(-A[1,1]*maxMat,-A[2,1]*maxMat,
+           A[1,1]*maxMat,A[2,1]*maxMat,
+           length = 0.05, col = rgb(0,0,0.8,0.3), code = 0, lty = 2)
+    arrows(-A[1,2]*maxMat,-A[2,2]*maxMat,
+           A[1,2]*maxMat,A[2,2]*maxMat,
+           length = 0.05, col = rgb(0,0,0.8,0.3), code = 0, lty = 2)
+  }
+  
+  
+  # eigenvectors
+  eign = eigen(A)
+  
+  if (any(Im(eign$values) != 0)){
+    message("Some eigenvalues are complex, but only real values are considered!\n")
+  }
+  
+  # imagenary part of eigenvectors is stripped
+  eigenVec_1 = Re(eign$vectors[,1])*Re(eign$values[1]) 
+  eigenVec_2 = Re(eign$vectors[,2])*Re(eign$values[2])
+  
+  # eigenvectors plotting
+  arrows(0,0,eigenVec_1[1],eigenVec_1[2], length = 0.05, col = rgb(0.8,0,0.8,0.7))
+  arrows(0,0,eigenVec_2[1],eigenVec_2[2], length = 0.05, col = rgb(0.8,0,0,0.7))
+  
+  # span eigenvectors plotting
+  if (plotSpan){
+    arrows(-eigenVec_1[1]*maxMat,-eigenVec_1[2]*maxMat,
+           eigenVec_1[1]*maxMat,eigenVec_1[2]*maxMat,
+           length = 0.05, col = rgb(0.8,0,0.8,0.3), lty = 2) # aes
+    arrows(-eigenVec_2[1]*maxMat,-eigenVec_2[2]*maxMat,
+           eigenVec_2[1]*maxMat,eigenVec_2[2]*maxMat,
+           length = 0.05, col = rgb(0.8,0,0,0.3), lty = 2) # aes
+  }
+  
+  # plot origin
+  points(0,0, pch = 16, cex = 0.7,)
+  
+  # legend
+  legend("topleft", c("Basis", "Transformed Basis","Scaled Eigenvectors"),
+         col = c(rgb(0,0,0,1),rgb(0,0,0.8,0.7),rgb(0.8,0,0.8,0.7)), 
+         pch = c(16,16,16),
+         inset=c(1,0), xpd=TRUE, horiz=F, bty="n",
+         cex = 0.75)
+  
+  # restore par settings to default
+  par(mfrow = c(1,1))
+}
 

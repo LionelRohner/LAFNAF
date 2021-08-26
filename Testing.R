@@ -1,14 +1,14 @@
 
 
-# ADD CAUTCHY SCHWARZ INEQUALITY
+# Some matrices
 
-
+# lin dep
 A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
                 1,2,3,4,
                 1,2,3,4),nrow = 4))
 
-
+# lin dep rect
 A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
                 1,2,3,4,
@@ -20,7 +20,7 @@ A <- t(matrix(c(1,2,3,4,
                 1,2,3,4,
                 1,2,3,4), nrow = 4))
 
-
+# lin dep (row space)
 A <- t(matrix(c(1,-3,5,
                 0,1,7,
                 2,-4,28,
@@ -29,19 +29,162 @@ A <- t(matrix(c(1,-3,5,
                 5,-9,30,
                 6,2,173), nrow = 3))
 
+# full rank 5x5
 A <- t(matrix(c(1,2,3, 4,-2,
                 -1,0,1,4,-7,
                 7,1,-2,4,1,
                 1,0,10,2,0,
                 213,1,8,6,4), nrow = 5))
 
+# full rank 3x3
 A <- t(matrix(c(1,2,3,
                 -1,0,1,
                 7,1,-2), nrow = 3))
 
+# lin dep 3x3 (Row 1 + Row 2 == Row 3)
 A <- t(matrix(c(2,2,2,
                 -2,2,-2,
                 0,4,0), nrow = 3))
+
+# full rank - all positive entries
+A <- t(matrix(c(2,0,2,
+                3,4,5,
+                17,13,0), nrow = 3))
+
+# full rank - positive
+A <- t(matrix(c(3,1,
+                0,2), nrow = 2))
+
+# zero
+A <- t(matrix(c(0,0,
+                0,0), nrow = 2))
+
+# rotation - eigenvalues +- i
+A <- t(matrix(c(0,-1,
+                1,0), nrow = 2))
+
+
+plotMatrixTransformation <- function(A,v,
+                                     offset = 1,
+                                     plotBasisVecs = T){
+  # assumptions for function:
+  if (all(dim(A) != 2)){
+    message("A is not 2x2. Exiting...")
+    return(NULL)
+  }
+  
+  par(mfrow = c(1,2),pty="s")
+  
+  maxMat = max(A) + offset
+  
+  plot(1, type = "n",                        
+       xlab = "", ylab = "",
+       xlim = c(-maxMat, maxMat), ylim = c(-maxMat, maxMat),
+       main = "Before Transformation", cex.main = 0.75)
+  grid()
+  
+  # basis vectors
+  if (plotBasisVecs){
+    arrows(0,0,0,1, length = 0.05)
+    arrows(0,0,1,0, length = 0.05)
+  }
+  
+  # span basis vectors
+  arrows(0,-1*2*maxMat,0,1*2*maxMat,
+         length = 0.05, col = rgb(0,0,0,0.3), code = 0, lty = 2)
+  arrows(-1*2*maxMat,0,1*2*maxMat,0,
+         length = 0.05, col = rgb(0,0,0,0.3), code = 0, lty = 2)
+  
+  # input vector
+  arrows(0,0,v[1],v[2], length = 0.05, col = rgb(0.8,0,0,0.8))
+  
+  # plot origin and tip of vec
+  points(0,0, pch = 16, cex = 0.7,)
+  points(0,0, pch = 16, cex = 0.7,)
+  
+  
+  # legend
+  legend("bottomright", c("Basis","Vector x (Ax=y)"),
+         col = c(rgb(0,0,0.8,0.7),rgb(0.8,0,0.8,0.7)), 
+         pch = c(16,16), inset=c(0,1), xpd=TRUE, horiz=T, bty="n",
+         cex = 0.75)
+  
+  # second plot with transformation
+  
+  # find new boundaries 
+  v_trans = A%*%v
+  if (max(v_trans) > maxMat){
+    maxMat = max(v_trans)
+  }
+  
+  if (splitPlot){
+    # emtpy plot
+    plot(1, type = "n",                        
+         xlab = "", ylab = "",
+         xlim = c(-maxMat, maxMat), ylim = c(-maxMat, maxMat),
+         main = "After Transformation", cex.main = 0.75)
+    
+    # formula for getting angle between vectors
+    angle <- function(v1,v2){
+      acos( sum(v1*v2) / ( sqrt(sum(v1*v1)) * sqrt(sum(v2*v2)) ) )
+    }
+    
+    # find angle
+    angle1 = angle(c(1,0),A[,1])
+    angle2 = -angle(c(0,1),A[,2])
+    
+    
+    # apply grid (swipe through grid in intervals (seq) and draw abline with slope = angle)
+    sapply(seq(-maxMat*10,maxMat*10,by=1), function(inter) abline(a=inter, 
+                                                                  b=tan(angle1),
+                                                                  lty=3,
+                                                                  col="lightgray"))
+    sapply(seq(-maxMat*10,maxMat*10,by=4), function(inter) abline(a=inter, 
+                                                                  b=tan(angle2+pi/2),
+                                                                  lty=3,
+                                                                  col="lightgray"))
+  }
+  
+  
+  # transformed basis vectors
+  if (plotBasisVecs){
+    arrows(0,0,A[1,1],A[2,1], length = 0.05, col = rgb(0,0,0.8,0.7))
+    arrows(0,0,A[1,2],A[2,2], length = 0.05, col = rgb(0,0,0.8,0.7))
+  }
+  
+  # span transformed basis vectors
+  
+  arrows(-A[1,1]*maxMat,-A[2,1]*maxMat,
+         A[1,1]*maxMat,A[2,1]*maxMat,
+         length = 0.05, col = rgb(0,0,0.8,0.3), code = 0, lty = 2)
+  arrows(-A[1,2]*maxMat,-A[2,2]*maxMat,
+         A[1,2]*maxMat,A[2,2]*maxMat,
+         length = 0.05, col = rgb(0,0,0.8,0.3), code = 0, lty = 2)
+  
+  
+  
+  # input vector transformed
+  arrows(0,0,v_trans[1],v_trans[2], length = 0.05, col = rgb(0.5,0,0.8,0.8))
+  
+  
+  # legend
+  legend("bottomright", c("Basis","Vector y (Ax=y)"),
+         col = c(rgb(0,0,0.8,0.7),rgb(0.8,0,0.8,0.7)), 
+         pch = c(16,16), inset=c(0,1), xpd=TRUE, horiz=T, bty="n",
+         cex = 0.75)
+  
+  # restore par settings to default
+  par(mfrow = c(1,1))
+}
+  
+
+v = c(1,1)
+plotMatrixTransformation(A,v, offset = 1)
+
+
+
+# SVD --> Add sign checker ------------------------------------------------
+
 
 # create P
 P <- orthogonalize(A)
@@ -62,175 +205,4 @@ singular_Value_Decomposition <- function(A){
 
 
 
-
-linDep_Cautchy_Schwartz <- function(A){
-  # Consists of checking whether <u,v> >= ||u|| ||v||
-  # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
-  
-  
-  # By transposing the matrix here, the algo needs to know whether the idx
-  # output is meant for the row or col space!!!
-  
-  # # Check whether there are more rows or cols, then choose shorter space
-  # # This reduces the # of iterations in the double loop
-  # if(ncol(A) > nrow(A)){
-  #   A = t(A)
-  # } 
-  
-  # output container
-  linDepIdx = c()
-  
-  # Cauchy-Schwarzt Loop
-  for (i in 1:nrow(A)){
-    for (j in i:nrow(A)){
-      if (i != j){
-        # compute norms and dot prod of the span of the row/col space
-        u_norm = sqrt(sum(A[i,]^2))
-        v_norm = sqrt(sum(A[j,]^2))
-        u_v = A[i,] %*% A[j,]
-        
-        
-        print("it")
-        print(round(u_norm) * round(v_norm))
-        print(u_v)
-        
-        
-        # check for strict equality to find lin. dependent rows/cols
-        # if (isTRUE(all.equal(u_v == u_norm * v_norm, round(u_v) == round(u_norm) * round(v_norm)))){
-        if (u_v == u_norm * v_norm){
-          # mirrored duplicates should be excluded
-          linDepIdx = rbind.data.frame(linDepIdx,c(i,j)) 
-        }
-      }
-    }
-  }
-  
-  # output construction
-  if (is.null(nrow(linDepIdx))){
-    message("No linear dependent cols/rows were found!")
-    return(NULL)
-  } else {
-    colnames(linDepIdx) = c("i","j")
-    message("Linear combinations of cols/rows were found!")
-    return(linDepIdx)
-  }
-}
-
-linDep_Cautchy_Schwartz(A)
-
-adjugate <- function(A){
-  
-  n = nrow(A)
-  m = ncol(A)
-  
-  if (n != m){
-    message("Matrix must be square!")
-    return(NULL)
-  }
-  
-  # create emtpy cofactor matrix
-  C = matrix(NA,nrow = n, ncol = m)
-  
-  # populate the cofactor matrix
-  for (i in 1:n){
-    for (j in 1:m){
-      C[i,j] = (-1)^(i+j)*det(A[-i,-j])
-    }
-  }
-  
-  return(t(C))
-}
-
-generalized_Inverse <- function(A){
-  
-  ### step 1 : Find a LIN submatrix of order rxr 
-  message("Step 1 : Find a LIN submatrix W of order rxr in A!")
-  
-  # All idxs in the second col should be lin. dep. with some vecs in the first col
-  # Hence, removing those entries should guarantee NON-singularity of A
-  rmIdx <- unique(linDep_Cautchy_Schwartz(A)$j)
-  
-  # Check whether A is full rank anyways
-  if (is.null(rmIdx)){
-    W = A
-  } else {
-    # make matrix square
-    diff_row_col = abs((nrow(A)-length(rmIdx))-ncol(A))
-    W <- A[-rmIdx, -diff_row_col]
-  }
-  
-  # check assumptions for non-singularity
-  if (det(W) == 0){
-    message("Hope that never happens ;)")
-    return(NULL)
-  }
-  
-  ### step 2 : (W^-1)^T
-  message("Step 2 : (W^-1)^T!")
-  
-  # create adjugate matrix - adjugate() doesnt work for 2x2
-  if (dim(W)[1] == 2){
-    adj_W = -1*W
-    diag(adj_W) = rev(diag(W))
-  } else {
-    adj_W = adjugate(W)
-  }
-  
-  transp_inv_W <- t(adj_W/det(W))
-  
-  ### step 3 : replace elements of A with (W^-1)^T
-  message("Step 3 : Project rows/cols of (W^-1)^T into a a zero matrix A0 of order dim(A)!")
-  
-  # Again, if A is non-singular from scratch skip Step 3
-  if (is.null(rmIdx)){
-    A0 = transp_inv_W
-  } else{
-    A0 <- 0*A
-    A0[-rmIdx, -diff_row_col] = transp_inv_W
-    
-  }
-  
-  
-  ### step 4 : t(A)
-  message("Step 3 : G = A0^T!")
-  
-  G <- t(A0)
-  
-  return(G)
-}
-
-check_Penrose_Cond <- function(A,
-                               G,
-                               all_Penrose_check = F,
-                               digits = 2){
-  
-  message("Disclaimer: All matrices are transformed to pure integer matrices first, so consider that...\n")
-  
-  if (all_Penrose_check == F){
-    Penrose_1 = all(round(A%*%G%*%A,2) == A)
-    message("AGA=A is ", Penrose_1)
-    return(Penrose_1)
-  } else{
-    Penrose_1 = all(round(A%*%G%*%A) == A)
-    message("AGA = A is ", Penrose_1)
-    
-    Penrose_2 = all(round(G%*%A%*%G,digits = digits) == round(G,digits = digits))
-    message("GAG = G is ", Penrose_2)
-    
-    Penrose_3 = all(round(A%*%G) == t(round(A%*%G)))
-    message("AG = (AG)' is ", Penrose_3)
-    
-    Penrose_4 = all(round(G%*%A) == t(round(G%*%A)))
-    message("GA = (GA)' is ", Penrose_4)
-    
-    return(all(Penrose_1,Penrose_2,Penrose_3,Penrose_4))
-  }
-}
-
-
-G <- generalized_Inverse(A)
-
-check_Penrose_Cond(A,G, all_Penrose_check = T)
-
-round(G%*%A%*%G,2) == round(G,2)
 
