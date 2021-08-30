@@ -56,6 +56,13 @@ A <- t(matrix(c(-1,-2,-2,
                 1,2,1,
                 -1,-1,-1), nrow = 3))
 
+
+# symmetric + pos def
+A <- t(matrix(c(2,2,1,
+                2,5,1,
+                1,1,2), nrow = 3))
+
+
 # full rank - positive 
 A <- t(matrix(c(3,1,
                 0,2), nrow = 2))
@@ -70,9 +77,35 @@ A <- t(matrix(c(0,-1,
 
 
 
-  
 
+# Is Positive Definite ----------------------------------------------------
 
+isPosDef <- function(A){
+  # test 1 - symmetry
+test1 = all(round(A, 5) == round(t(A),5))
+
+# test 2 - positive eigenvalues
+test2 = prod(eigen(A)$value) > 0
+
+# test 3 - positive upper left submatrices
+dimA = nrow(A)
+upLeftDets = c(A[1,1])
+if (A[1,1] < 0){
+  test3 = FALSE
+} else { 
+  for (i in 2:dimA){
+    upLeftDet = det(A[1:i,1:i])
+    if (upLeftDet < 0){
+      test3 = FALSE
+    } else {
+      upLeftDets = c(upLeftDets,det(A[1:i,1:i]))
+    }
+  }
+}
+test3 = all(upLeftDets > 0)
+
+all(test1,test2,test3)
+}
 
 # SVD --> Add sign checker ------------------------------------------------
 
@@ -89,6 +122,30 @@ D <- matrix(0,nrow = length(eigenVal), ncol = length(eigenVal))
 diag(D) <- sqrt(eigenVal)
 
 P%*%D%*%t(Q)
+# test 1 - symmetry
+test1 = all(round(A, 5) == round(t(A),5))
+
+# test 2 - positive eigenvalues
+test2 = prod(eigen(A)$value) > 0
+
+# test 3 - positive upper left submatrices
+dimA = nrow(A)
+upLeftDets = c(A[1,1])
+if (A[1,1] < 0){
+  test3 = FALSE
+} else { 
+  for (i in 2:dimA){
+    upLeftDet = det(A[1:i,1:i])
+    if (upLeftDet < 0){
+      test3 = FALSE
+    } else {
+      upLeftDets = c(upLeftDets,det(A[1:i,1:i]))
+    }
+  }
+}
+test3 = all(upLeftDets > 0)
+
+all(test1,test2,test3)
 
 singular_Value_Decomposition <- function(A){
   
