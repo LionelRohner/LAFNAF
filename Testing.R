@@ -63,6 +63,8 @@ A <- t(matrix(c(2,2,1,
                 1,1,2), nrow = 3))
 
 
+isPosDef(A)
+
 # full rank - positive 
 A <- t(matrix(c(3,1,
                 0,2), nrow = 2))
@@ -81,10 +83,16 @@ A <- t(matrix(c(0,-1,
 # Is Positive Definite ----------------------------------------------------
 
 isPosDef <- function(A){# test 1 - symmetry
+  
+  # test 1 - is symmetric?
   test1 = all(round(A, 5) == round(t(A),5))
+  
+  message("Test 1 - Matrix is symmetric? ", test1)
   
   # test 2 - positive eigenvalues
   test2 = prod(eigen(A)$value) > 0
+  
+  message("Test 2 - All eigenvalues are positive? ", test2)
   
   # test 3 - positive upper left submatrices
   dimA = nrow(A)
@@ -103,6 +111,9 @@ isPosDef <- function(A){# test 1 - symmetry
   }
   test3 = all(upLeftDets > 0)
   
+  message("Test 3 - Determinant of upper left submatrices are > 0? ", test3)
+  
+  # output  
   return(all(test1,test2,test3))
 }
 

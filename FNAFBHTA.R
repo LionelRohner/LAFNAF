@@ -66,9 +66,49 @@ fastExp <- function(A,p){
   return(UDU$U%*%D%*%UDU$U_inv)
 }
 
+
+# Single Cautchy-Schwartz Ineq Test ---------------------------------------
+
+linDep_Cautchy_Schwartz <- function(u,v, tol = 1e-05){
+  # Consists of checking whether <u,v> >= ||u|| ||v||
+  # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
+  
+  
+  # By transposing the matrix here, the algo needs to know whether the idx
+  # output is meant for the row or col space!!!
+  
+  # # Check whether there are more rows or cols, then choose shorter space
+  # # This reduces the # of iterations in the double loop
+  # if(ncol(A) > nrow(A)){
+  #   A = t(A)
+  # } 
+  
+  # compute norms of the vectors
+  u_norm = sqrt(sum(u^2))
+  v_norm = sqrt(sum(v^2))
+  u_v_norm = u_norm * v_norm
+  
+  # dot product of vectors
+  u_v = drop(v %*% u)
+
+  
+
+  # check for strict equality to find lin. dependent rows/cols
+  if (abs(u_v-u_v_norm) <= tol){
+    return(FALSE)
+  } else {
+    return(TRUE)
+  }
+  
+}
+
+
+linDep_Cautchy_Schwartz(u,v)
+
 # Cautchy-Schwartz-Inequality to Identify Linear Dependent Cols/Rows ------
 
-linDep_Cautchy_Schwartz <- function(A){
+
+linDep_Cautchy_Schwartz_Matrix <- function(A){
   # Consists of checking whether <u,v> >= ||u|| ||v||
   # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
   
@@ -114,7 +154,7 @@ linDep_Cautchy_Schwartz <- function(A){
     return(linDepIdx)
   }
 }
-
+ 
 
 
 # Create an Adjugate Matrix (transpose of a cofactor matrix) --------------
@@ -244,7 +284,7 @@ check_Penrose_Cond <- function(A,
 # Inverse of Matrix (Square) ----------------------------------------------
 
 inverse <- function(A){
-  # Check for squaresness
+  # Check for squareness
   if (nrow(A) != ncol(A)){
     message("Matrix is not invertible")
     return(NULL)
@@ -264,9 +304,9 @@ inverse <- function(A){
 
 #  Orthogonalize Matrix (AAT or ATA) --------------------------------------
 
-function(A){
+orthogonalize <- function(A){
   preQ = A%*%t(A)
-  Q = eigen(preQ)$vectors
+  Q = eigen(preQ, symmetric = T)$vectors
   for (row in 1:nrow(Q)){
     # Normalize Rows
     Q[row,] = 1/sqrt(c(Q[row,]%*%Q[row,]))*c(Q[row,])
@@ -278,38 +318,6 @@ function(A){
 
 rank_Matrix <- function(A, tol = 1e-12){
   return(sum(abs(Re(eigen(A)$values)) > tol))
-  
-  # # if A is mxn with m != n, then the larger (be it rows or cols) will be lin dep!
-  # if (ncol(A) > nrow(A)){
-  #   A = t(A)
-  # }
-  # 
-  # # lin.dep indices
-  # CS_indices <- unique(linDep_Cautchy_Schwartz(A)$j)
-  # print(CS_indices)
-  # # if CS_indices is empty, A is full-rank, hence rank = nrow(A) = ncol(A)
-  # if (is.null(CS_indices)){
-  #   message("Matrix is full-rank!")
-  #   return(nrow(A))
-  # } else {
-  #   # not full rank situation, due to transposition, nrow(A) > ncol(A)
-  #   rank = nrow(A)-length(CS_indices)
-  #   message("Matrix has order ", nrow(A),"x",ncol(A), " and rank ", rank)
-  #   return(rank)
-  # }
-}
-
-
-# Orthogonalize Matrix ----------------------------------------------------
-
-orthogonalize <- function(A){
-  preQ = A%*%t(A)
-  Q = eigen(preQ, symmetric = T)$vectors
-  for (row in 1:nrow(Q)){
-    # Normalize Rows
-    Q[row,] = 1/sqrt(c(Q[row,]%*%Q[row,]))*c(Q[row,])
-  }
-  return(Q)
 }
 
 
