@@ -5,5 +5,5 @@ Originally, I wrote these functions to verify some linear algebra exercises. As 
 
 ### The functions:
 
-* *create_basis:*
+* **create_basis:**
 
