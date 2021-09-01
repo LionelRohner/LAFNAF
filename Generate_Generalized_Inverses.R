@@ -56,12 +56,6 @@ A <- t(matrix(c(6,1,
                 2,3), nrow = 2))
 
 
-eigen(A)
-
-P%*%D%*%t(Q)
-v <- svd(A)
-diag(D)
-v$u%*%%*%t(v$v)
 
 
 

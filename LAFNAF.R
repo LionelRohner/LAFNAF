@@ -1,6 +1,65 @@
 #------------------------------------------------------------------------------#
-# Functions That Nobody Asked For, But Here They Are ----------------------
+# Linear Algebra Functions Nobody Asked For -------------------------------
 #------------------------------------------------------------------------------#
+
+# None of the functions below have been thourougly tested!
+
+
+# create linear independent vectors aka a basis ---------------------------
+
+create_basis <- function(dim, lower = 0, upper = 9){
+  basis = matrix(sample(lower:upper,dim^2), nrow = dim)
+  
+  while (det(basis) == 0){
+    basis = matrix(sample(lower:upper,dim^2), nrow = dim)
+  }
+  
+  return(basis)
+  
+  # output list of vecs instead of matrix
+  out = list()
+  for (rowcol in 1:dim){
+    out[[rowcol]] = basis[,rowcol]
+  }
+  return(out)
+}
+
+# Is Positive Definite ----------------------------------------------------
+
+isPosDef <- function(A){# test 1 - symmetry
+  
+  # test 1 - is symmetric?
+  test1 = all(round(A, 5) == round(t(A),5))
+  
+  message("Test 1 - Matrix is symmetric? ", test1)
+  
+  # test 2 - positive eigenvalues
+  test2 = prod(Re(eigen(A)$value)) > 0
+  
+  message("Test 2 - All (real) eigenvalues are positive? ", test2)
+  
+  # test 3 - positive upper left submatrices
+  dimA = nrow(A)
+  upLeftDets = c(A[1,1])
+  if (A[1,1] < 0){
+    test3 = FALSE
+  } else { 
+    for (i in 2:dimA){
+      upLeftDet = det(A[1:i,1:i])
+      if (upLeftDet < 0){
+        test3 = FALSE
+      } else {
+        upLeftDets = c(upLeftDets,det(A[1:i,1:i]))
+      }
+    }
+  }
+  test3 = all(upLeftDets > 0)
+  
+  message("Test 3 - Determinant of upper left submatrices are > 0? ", test3)
+  
+  # output  
+  return(all(test1,test2,test3))
+}
 
 # Matrix Power ------------------------------------------------------------
 
@@ -22,7 +81,6 @@ mpow <- function(A, n){
     A_to_the_i <- A%*%A_to_the_i
   }; return(A_to_the_i)
 }
-
 
 
 # Canonical Form (A = UDU^-1 ----------------------------------------------
@@ -103,7 +161,6 @@ linDep_Cautchy_Schwartz <- function(u,v, tol = 1e-05){
 }
 
 
-linDep_Cautchy_Schwartz(u,v)
 
 # Cautchy-Schwartz-Inequality to Identify Linear Dependent Cols/Rows ------
 
@@ -190,6 +247,11 @@ adjugate <- function(A){
 }
 
 # Create generalized inverse from a mxn matrix ----------------------------
+
+# does only work for obvious cases of lin dep that are actually identified
+# by the Cautchy-Schwartz Inequality (e.g. [2,4] = 2*[1,2]), but not for
+# compositve linear dependencies (e.g. [4,0] = [2,-2] + [2,2]).
+
 
 generalized_Inverse <- function(A){
   

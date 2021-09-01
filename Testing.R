@@ -80,6 +80,14 @@ A <- t(matrix(c(0,-1,
 
 
 
+
+
+
+
+
+
+
+
 # Is Positive Definite ----------------------------------------------------
 
 isPosDef <- function(A){# test 1 - symmetry
