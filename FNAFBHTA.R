@@ -161,8 +161,8 @@ linDep_Cautchy_Schwartz <- function(u,v, tol = 1e-05){
 }
 
 
+# Cautchy-Schwartz-Inequality to Identify Parallel Vectors ----------------
 
-# Cautchy-Schwartz-Inequality to Identify Linear Dependent Cols/Rows ------
 
 
 linDep_Cautchy_Schwartz_Matrix <- function(A){
@@ -193,7 +193,7 @@ linDep_Cautchy_Schwartz_Matrix <- function(A){
         u_v = A[i,] %*% A[j,]
         
         # check for strict equality to find lin. dependent rows/cols
-        if (u_v == u_norm * v_norm ){
+        if (compare_floats(u_v,u_norm * v_norm)){
           # mirrored duplicates should be excluded
           linDepIdx = rbind.data.frame(linDepIdx,c(i,j)) 
         }
@@ -378,8 +378,12 @@ orthogonalize <- function(A){
 
 # Rank --------------------------------------------------------------------
 
-rank_Matrix <- function(A, tol = 1e-12){
+rank_square_Matrix <- function(A, tol = 1e-12){
   return(sum(abs(Re(eigen(A)$values)) > tol))
+}
+
+rank_Matrix <- function(A){
+  return(qr$rank)
 }
 
 
@@ -623,4 +627,24 @@ plotMatrixTransformation <- function(A,v,
 }
 
 plotMatrixTransformation(A,c(1,3),offset = 2)
+
+
+# Auxillary Functions -----------------------------------------------------
+
+# compare floats
+compare_floats <- function(a,b,tol=1e-06){
+  return(abs(a-b) < tol)
+}
+
+# swap rows
+swap <- function(A,old,new, col = T) {
+    tmp <- A[old,]
+    A[old,] <- A[new,]
+    A[new,] <- tmp
+    return(A)
+}
+
+append_to_bottom <- function(A,to_append){
+  return(rbind(A[-to_append,],A[to_append,]))
+}
 
