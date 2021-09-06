@@ -130,17 +130,29 @@ fastExp <- function(A,p){
 linDep_Cautchy_Schwartz <- function(u,v, tol = 1e-05){
   # Consists of checking whether <u,v> >= ||u|| ||v||
   # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
+
+  # compute inner prod u^Tu and v^Tv
+  uu = u %*% u
+  vv = v %*% v
   
+  # compute inner prod u^Tv
+  uv_squared = (u %*% v)^2
+
+  # check for strict equality to find lin. dependent rows/cols
+  if (compare_floats(uu*vv,uv_squared,tol = tol)){
+    message("Vectors are linearly dependent!")
+    return(FALSE)
+  } else {
+    return(TRUE)
+  }
   
-  # By transposing the matrix here, the algo needs to know whether the idx
-  # output is meant for the row or col space!!!
-  
-  # # Check whether there are more rows or cols, then choose shorter space
-  # # This reduces the # of iterations in the double loop
-  # if(ncol(A) > nrow(A)){
-  #   A = t(A)
-  # } 
-  
+}
+
+
+linDep_Cautchy_Schwartz_decrep <- function(u,v, tol = 1e-05){
+  # Consists of checking whether <u,v> >= ||u|| ||v||
+  # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
+
   # compute norms of the vectors
   u_norm = sqrt(sum(u^2))
   v_norm = sqrt(sum(v^2))
@@ -161,18 +173,14 @@ linDep_Cautchy_Schwartz <- function(u,v, tol = 1e-05){
 }
 
 
-# Cautchy-Schwartz-Inequality to Identify Parallel Vectors ----------------
-
+# Cautchy-Schwartz-Inequality to Identify Parallel Cols/Rows --------------
 
 
 linDep_Cautchy_Schwartz_Matrix <- function(A){
   # Consists of checking whether <u,v> >= ||u|| ||v||
   # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
   
-  
-  # By transposing the matrix here, the algo needs to know whether the idx
-  # output is meant for the row or col space!!!
-  
+
   # # Check whether there are more rows or cols, then choose shorter space
   # # This reduces the # of iterations in the double loop
   # if(ncol(A) > nrow(A)){
@@ -184,6 +192,10 @@ linDep_Cautchy_Schwartz_Matrix <- function(A){
   
   # Cauchy-Schwarzt Loop
   for (i in 1:nrow(A)){
+    # skip if the vector is a zero vector
+    if (all(A[i,] == 0)){
+      next
+    }
     for (j in i:nrow(A)){
       if (i != j){
         
@@ -200,7 +212,7 @@ linDep_Cautchy_Schwartz_Matrix <- function(A){
       }
     }
   }
-  
+  print(linDepIdx)
   # output construction
   if (is.null(nrow(linDepIdx))){
     message("No linear dependent cols/rows were found!")
