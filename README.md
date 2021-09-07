@@ -11,7 +11,7 @@ Originally, I wrote these functions to verify some linear algebra exercises. As 
 
 ### Main Functions:
 
-* **create_Basis:** Create linear independent vectors, i.e. a basis for any real vector-space.
+* **create_Basis:** Create a set of linear independent vectors that span a real vector-space.
 *  **is_Pos_Def:** Checks whether a matrix **A** is positive definite.
 *  **mPow:** Calculate powers of some matrix **A**.
 *  **canonical_Form:** Compute the decomposition of a matrix **A** into **UDU^-1**, where **U** is the matrix of eigenvectors and the diagonal matrix **D**, the similar canonical form, containing the eigenvalues of **A**.
