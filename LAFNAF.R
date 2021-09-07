@@ -4,17 +4,20 @@
 
 # None of the functions below have been thourougly tested!
 
+# -------------------------------------------------------------------------
+# Main Functions ----------------------------------------------------------
+# -------------------------------------------------------------------------
 
 # create linear independent vectors aka a basis ---------------------------
 
-create_basis <- function(dim, lower = 0, upper = 9){
+create_Basis <- function(dim, lower = 0, upper = 9){
   basis = matrix(sample(lower:upper,dim^2), nrow = dim)
   
   while (det(basis) == 0){
     basis = matrix(sample(lower:upper,dim^2), nrow = dim)
   }
   
-  return(basis)
+  # return(basis) # return in matrix form
   
   # output list of vecs instead of matrix
   out = list()
@@ -26,7 +29,7 @@ create_basis <- function(dim, lower = 0, upper = 9){
 
 # Is Positive Definite ----------------------------------------------------
 
-isPosDef <- function(A){# test 1 - symmetry
+is_Pos_Def <- function(A){# test 1 - symmetry
   
   # test 1 - is symmetric?
   test1 = all(round(A, 5) == round(t(A),5))
@@ -63,7 +66,7 @@ isPosDef <- function(A){# test 1 - symmetry
 
 # Matrix Power ------------------------------------------------------------
 
-mpow <- function(A, n){
+mPow <- function(A, n){
   # uglllyyyy
   n = n-1
   
@@ -85,7 +88,7 @@ mpow <- function(A, n){
 
 # Canonical Form (A = UDU^-1 ----------------------------------------------
 
-canonical_form <- function(A){
+canonical_Form <- function(A){
   # create UDU
   
   # create U
@@ -111,7 +114,7 @@ canonical_form <- function(A){
 # Fast Exponentiation Using Canonical Form --------------------------------
 
 fastExp <- function(A,p){
-  UDU = canonical_form(A)
+  UDU = canonical_Form(A)
   
   # fast exponentiation of eigenvalues
   D <- UDU$D
@@ -130,17 +133,29 @@ fastExp <- function(A,p){
 linDep_Cautchy_Schwartz <- function(u,v, tol = 1e-05){
   # Consists of checking whether <u,v> >= ||u|| ||v||
   # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
+
+  # compute inner prod u^Tu and v^Tv
+  uu = u %*% u
+  vv = v %*% v
   
+  # compute inner prod u^Tv
+  uv_squared = (u %*% v)^2
+
+  # check for strict equality to find lin. dependent rows/cols
+  if (compare_Floats(uu*vv,uv_squared,tol = tol)){
+    message("Vectors are linearly dependent!")
+    return(FALSE)
+  } else {
+    return(TRUE)
+  }
   
-  # By transposing the matrix here, the algo needs to know whether the idx
-  # output is meant for the row or col space!!!
-  
-  # # Check whether there are more rows or cols, then choose shorter space
-  # # This reduces the # of iterations in the double loop
-  # if(ncol(A) > nrow(A)){
-  #   A = t(A)
-  # } 
-  
+}
+
+
+linDep_Cautchy_Schwartz_decrep <- function(u,v, tol = 1e-05){
+  # Consists of checking whether <u,v> >= ||u|| ||v||
+  # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
+
   # compute norms of the vectors
   u_norm = sqrt(sum(u^2))
   v_norm = sqrt(sum(v^2))
@@ -161,18 +176,14 @@ linDep_Cautchy_Schwartz <- function(u,v, tol = 1e-05){
 }
 
 
-
-# Cautchy-Schwartz-Inequality to Identify Linear Dependent Cols/Rows ------
+# Cautchy-Schwartz-Inequality to Identify Parallel Cols/Rows --------------
 
 
 linDep_Cautchy_Schwartz_Matrix <- function(A){
   # Consists of checking whether <u,v> >= ||u|| ||v||
   # Strict equality indicate linear dependence, i.e. <u,v> = ||u|| ||v||
   
-  
-  # By transposing the matrix here, the algo needs to know whether the idx
-  # output is meant for the row or col space!!!
-  
+
   # # Check whether there are more rows or cols, then choose shorter space
   # # This reduces the # of iterations in the double loop
   # if(ncol(A) > nrow(A)){
@@ -184,7 +195,19 @@ linDep_Cautchy_Schwartz_Matrix <- function(A){
   
   # Cauchy-Schwarzt Loop
   for (i in 1:nrow(A)){
+    
+    # skip if the vector is a zero vector
+    if (all(A[i,] == 0)){
+      next
+    }
+    
     for (j in i:nrow(A)){
+      
+      # skip if the vector is a zero vector
+      if (all(A[j,] == 0)){
+        next
+      }
+      
       if (i != j){
         
         # compute norms and dot prod of the span of the row/col space
@@ -193,7 +216,7 @@ linDep_Cautchy_Schwartz_Matrix <- function(A){
         u_v = A[i,] %*% A[j,]
         
         # check for strict equality to find lin. dependent rows/cols
-        if (u_v == u_norm * v_norm ){
+        if (compare_Floats(u_v,u_norm * v_norm)){
           # mirrored duplicates should be excluded
           linDepIdx = rbind.data.frame(linDepIdx,c(i,j)) 
         }
@@ -203,11 +226,11 @@ linDep_Cautchy_Schwartz_Matrix <- function(A){
   
   # output construction
   if (is.null(nrow(linDepIdx))){
-    message("No linear dependent cols/rows were found!")
+    # message("No linear dependent cols/rows were found!")
     return(NULL)
   } else {
     colnames(linDepIdx) = c("i","j")
-    message("Linear combinations of cols/rows were found!")
+    # message("Linear combinations of cols/rows were found!")
     return(linDepIdx)
   }
 }
@@ -378,8 +401,12 @@ orthogonalize <- function(A){
 
 # Rank --------------------------------------------------------------------
 
-rank_Matrix <- function(A, tol = 1e-12){
+rank_square_Matrix <- function(A, tol = 1e-12){
   return(sum(abs(Re(eigen(A)$values)) > tol))
+}
+
+rank_Matrix <- function(A){
+  return(qr$rank)
 }
 
 
@@ -409,14 +436,121 @@ singular_Value_Decomposition <- function(A){
 }
 
 
+# Reduced Row Echelon Form ------------------------------------------------
+
+
+rref <- function(A){
+  
+  # 1.) Setup variables
+  nc = ncol(A)
+  nr = nrow(A)
+  
+  # first pivot must be on first column
+  currentCol = 1
+  idxPivot = 1
+  
+  # 1.1.) remove parallel vectors
+  rmIdx = unique(linDep_Cautchy_Schwartz_Matrix(A)$j)
+  
+  # 1.2.) set small values to zero
+  ifelse(abs(A) <= 1e-10, 0, A)
+  
+  # put zero-vector and parallel vectors at the bottom
+  if (!is.null(rmIdx)){
+    A[rmIdx,] <- rep(0,nc)
+    A <- add_To_Bottom(A,rmIdx)
+  } 
+  
+  # 2.) find first pivot (if exists, else normalize first row to first element)
+  firstPivotIdx = which(A[,1]==1)[1]
+  
+  # check if a pivot exists?
+  if (!is.na(firstPivotIdx)){
+    A <- swap(A,firstPivotIdx,1)
+    
+  } else {
+    # Create a pivot (normalize first row)
+    A[1,] = (1/A[1,1]) * A[1,]
+  }
+  
+  # 2.1.) Check if column are all 0 except for the row with the pivot
+  if (!col_Is_All_Zero(A,currentCol = currentCol)){
+    
+    # find nonzero elements in col. vector
+    idxNonzero = which(A[-idxPivot,currentCol]!=0) + currentCol
+    
+    # Perform Elementary Row OPs
+    A = gaussian_Elimination(A,idxNonzero,currentCol)
+  } 
+  
+  # 2.2.) Reorganize matrix such that zero vectors are at the bottom, rm parallel vectors
+  A = swap_Zero_Vectors(A)
+  A = remove_Parallel_Vectors(A)
+  
+  # 3.) find potential next pivots and swap rows if exist
+  nextPivot = 2
+  currentCol = 2
+  currentRow = 1
+  
+  
+  # make loop even easier
+  for (col in currentCol:nc){
+    
+    # skip if col is zero
+    if (all(A[-c(1:currentRow),col] == 0)){
+      next
+    }
+    
+    # go one row down to follow the diagonal if the column is not full of zeros
+    currentRow = currentRow + 1
+    
+    
+    # create new pivot
+    A[currentRow,] = (1/A[currentRow,col]) * A[currentRow,]
+    
+    
+    # 2.1.) Check if column are all 0 except for the row with the pivot
+    if (!col_Is_All_Zero(A,currentCol = col)){
+      
+      # find nonzero elements in col. vector
+      idxNonzero = which(A[-c(1:currentRow),col]!=0) + col
+      
+      # Perform Elementary Row OPs
+      A = gaussian_Elimination(A,idxNonzero,col)
+    }
+    
+  }
+  
+  # clean output 
+  A_reduced = A[-find_Zero_Vectors(A),]
+  nrTest = nrow(A_reduced)
+  
+  # if the number of pivots on the diagonal submatrix of sice col x col = max rank
+  # then the result must be the identity matrix. This is not a very nice work around
+  # since actually the algo should perform gaussian elemintation of free variables.
+  if (all(diag(A_reduced) == 1)){
+    # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
+    A = rbind(diag(nrTest),matrix(0,nrow = nr-nrTest, ncol = nc))
+    return(A)
+  }
+  
+  
+  return(A)
+}
+
+
+
+# -------------------------------------------------------------------------
+# Plotting Functions ------------------------------------------------------
+# -------------------------------------------------------------------------
 
 # Plotting Eigenvectors from 2x2 Matrix -----------------------------------
 
-plotEigenVec <- function(A,
-                         offset = 1,
-                         plotBasisVecs = T,
-                         plotSpan = T,
-                         plotTransBasis = T){
+plot_EigenVec <- function(A,
+                          offset = 1,
+                          plotBasisVecs = T,
+                          plotSpan = T,
+                          plotTransBasis = T){
   
   # assumptions for function:
   if (all(dim(A) != 2)){
@@ -505,7 +639,7 @@ plotEigenVec <- function(A,
 
 # Plot Matrix Transformation Ax = y ---------------------------------------
 
-plotMatrixTransformation <- function(A,v,
+plot_Matrix_Transformation <- function(A,v,
                                      offset = 1,
                                      plotBasisVecs = T,
                                      splitPlot = T){
@@ -624,3 +758,68 @@ plotMatrixTransformation <- function(A,v,
 
 plotMatrixTransformation(A,c(1,3),offset = 2)
 
+# -------------------------------------------------------------------------
+# Auxillary Functions -----------------------------------------------------
+# -------------------------------------------------------------------------
+
+# compare floats
+compare_Floats <- function(a,b,tol=1e-06){
+  return(abs(a-b) < tol)
+}
+
+# swap rows
+swap <- function(A,old,new, col = T) {
+    tmp <- A[old,]
+    A[old,] <- A[new,]
+    A[new,] <- tmp
+    return(A)
+}
+
+# add rows to the bottom of a matrix (used in rref)
+add_To_Bottom <- function(A,to_append){
+  return(rbind(A[-to_append,],A[to_append,]))
+}
+
+# check if column vector below pivot is all zero (used in rref)
+col_Is_All_Zero = function(A,currentCol){
+  return(all(A[-c(1:currentCol),currentCol] == 0))
+}
+
+
+# perform row operations (used in rref)
+gaussian_Elimination <- function(A, idxNonzero, currentCol){
+  for (ele in idxNonzero){
+    A[ele,] = A[ele,]-A[ele,currentCol]*A[currentCol,]
+  }
+  return(A)
+}
+
+# RM if only used in swap_Zero_Vectors
+  find_Zero_Vectors = function(A){
+  return(which(rowSums(sqrt(A^2)) == 0))
+}
+
+# used to put zero vectors at the bottom if found in matrix
+swap_Zero_Vectors <- function(A){
+  
+  zeroVecIdx = find_Zero_Vectors(A)
+  
+  if (length(zeroVecIdx) == 0){
+    return(A)
+  } else {
+    return(add_To_Bottom(A,zeroVecIdx))
+  }
+}
+
+remove_Parallel_Vectors <- function(A){
+  # find parallel vectors
+  rmIdx = unique(linDep_Cautchy_Schwartz_Matrix(A)$j)
+  
+  # put zero-vector and parallel vectors at the bottom
+  if (!is.null(rmIdx)){
+    A[rmIdx,] <- rep(0,nc)
+    return(add_To_Bottom(A,rmIdx))
+  } else {
+    return(A)
+  }
+}
