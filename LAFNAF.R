@@ -148,7 +148,6 @@ linDep_Cautchy_Schwartz <- function(u,v, tol = 1e-05){
   } else {
     return(TRUE)
   }
-  
 }
 
 
@@ -172,7 +171,6 @@ linDep_Cautchy_Schwartz_decrep <- function(u,v, tol = 1e-05){
   } else {
     return(TRUE)
   }
-  
 }
 
 
@@ -265,15 +263,15 @@ adjugate <- function(A){
       C[i,j] = (-1)^(i+j)*det(A[-i,-j])
     }
   }
-  
+
   return(t(C))
 }
 
 # Create generalized inverse from a mxn matrix ----------------------------
 
-# does only work for obvious cases of lin dep that are actually identified
-# by the Cautchy-Schwartz Inequality (e.g. [2,4] = 2*[1,2]), but not for
-# compositve linear dependencies (e.g. [4,0] = [2,-2] + [2,2]).
+# does only work for obvious cases of lin. dep. (i.e. parallel vectors) that are 
+# identified by the Cautchy-Schwartz Inequality (e.g. [2,4] = 2*[1,2]), but not
+# if lin. dep. arise from combinations of vectors (e.g. [4,0] = [2,-2] + [2,2]).
 
 
 generalized_Inverse <- function(A){
@@ -405,6 +403,8 @@ rank_square_Matrix <- function(A, tol = 1e-12){
   return(sum(abs(Re(eigen(A)$values)) > tol))
 }
 
+
+# replace by own rref method when done
 rank_Matrix <- function(A){
   return(qr$rank)
 }
@@ -439,7 +439,12 @@ singular_Value_Decomposition <- function(A){
 # Reduced Row Echelon Form ------------------------------------------------
 
 
-rref <- function(A){
+rref2 <- function(A){
+  
+  # Corner Case 1: all zero matrix
+  if (max(abs(A)) == 0){
+    return(A)
+  }
   
   # 1.) Setup variables
   nc = ncol(A)
@@ -488,7 +493,6 @@ rref <- function(A){
   A = remove_Parallel_Vectors(A)
   
   # 3.) find potential next pivots and swap rows if exist
-  nextPivot = 2
   currentCol = 2
   currentRow = 1
   
@@ -509,7 +513,7 @@ rref <- function(A){
     A[currentRow,] = (1/A[currentRow,col]) * A[currentRow,]
     
     
-    # 2.1.) Check if column are all 0 except for the row with the pivot
+    # 3.1.) Check if column are all 0 except for the row with the pivot
     if (!col_Is_All_Zero(A,currentCol = col)){
       
       # find nonzero elements in col. vector
@@ -521,18 +525,18 @@ rref <- function(A){
     
   }
   
-  # clean output 
-  A_reduced = A[-find_Zero_Vectors(A),]
-  nrTest = nrow(A_reduced)
-  
-  # if the number of pivots on the diagonal submatrix of sice col x col = max rank
-  # then the result must be the identity matrix. This is not a very nice work around
-  # since actually the algo should perform gaussian elemintation of free variables.
-  if (all(diag(A_reduced) == 1)){
-    # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
-    A = rbind(diag(nrTest),matrix(0,nrow = nr-nrTest, ncol = nc))
-    return(A)
-  }
+  # # clean output
+  # A_reduced = A[-find_Zero_Vectors(A),]
+  # nrTest = ifelse(nrow(A_reduced) <  nr, nrow(A_reduced), nr)
+  # 
+  # # if the number of pivots on the diagonal submatrix of sice col x col = max rank
+  # # then the result must be the identity matrix. This is not a very nice work around
+  # # since actually the algo should perform gaussian elemintation of free variables.
+  # if (all(diag(A_reduced) == 1)){
+  #   # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
+  #   A = rbind(diag(nrTest),matrix(0,nrow = nr-nrTest, ncol = nc))
+  #   return(A)
+  # }
   
   
   return(A)
@@ -756,7 +760,7 @@ plot_Matrix_Transformation <- function(A,v,
   par(mfrow = c(1,1))
 }
 
-plotMatrixTransformation(A,c(1,3),offset = 2)
+plot_Matrix_Transformation(A,c(1,3),offset = 2)
 
 # -------------------------------------------------------------------------
 # Auxillary Functions -----------------------------------------------------
