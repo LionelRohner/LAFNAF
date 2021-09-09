@@ -438,6 +438,138 @@ singular_Value_Decomposition <- function(A){
 
 # Reduced Row Echelon Form ------------------------------------------------
 
+rref2 <- function(A){
+  
+  # Corner Case 1: all zero matrix
+  if (max(abs(A)) == 0){
+    return(A)
+  }
+  
+  # 1.) Setup variables
+  nc = ncol(A)
+  nr = nrow(A)
+  
+  # first pivot must be on first column
+  currentCol = 1
+  idxPivots = data.frame(i = 1, j = 1)
+  
+  # 1.1.) remove parallel vectors
+  rmIdx = unique(linDep_Cautchy_Schwartz_Matrix(A)$j)
+  
+  # 1.2.) set small values to zero
+  ifelse(abs(A) <= 1e-10, 0, A)
+  
+  # put zero-vector and parallel vectors at the bottom
+  if (!is.null(rmIdx)){
+    A[rmIdx,] <- rep(0,nc)
+    A <- add_To_Bottom(A,rmIdx)
+  } 
+  
+  # 2.) find first pivot (if exists, else normalize first row to first element)
+  firstPivotIdx = which(A[,1]==1)[1]
+  
+  # check if a pivot exists?
+  if (!is.na(firstPivotIdx)){
+    A <- swap(A,firstPivotIdx,1)
+    
+  } else {
+    # Create a pivot (normalize first row)
+    A[1,] = (1/A[1,1]) * A[1,]
+  }
+  
+  # 2.1.) Check if column are all 0 except for the row with the pivot
+  if (!col_Is_All_Zero(A,currentCol = currentCol)){
+    
+    # find nonzero elements in col. vector
+    idxNonzero = which(A[-1,currentCol]!=0) + currentCol
+    
+    # Perform Elementary Row OPs
+    A = gaussian_Elimination(A,idxNonzero,currentCol)
+  } 
+  
+  # 2.2.) Reorganize matrix such that zero vectors are at the bottom, rm parallel vectors
+  A = swap_Zero_Vectors(A)
+  A = remove_Parallel_Vectors(A)
+  
+  # 3.) find potential next pivots and swap rows if exist
+  currentCol = 2
+  currentRow = 1
+  
+  
+  # make loop even easier
+  for (col in currentCol:nc){
+    
+    # skip if col is zero
+    if (all(A[-c(1:currentRow),col] == 0)){
+      next
+    }
+    
+    # go one row down to follow the diagonal if the column is not full of zeros
+    currentRow = currentRow + 1
+    
+    
+    # create new pivot
+    A[currentRow,] = (1/A[currentRow,col]) * A[currentRow,]
+    
+    # add pivot index
+    idxPivots = rbind(idxPivots,c(currentRow, col))
+    
+    # 3.1.) Check if column are all 0 except for the row with the pivot
+    if (!col_Is_All_Zero(A,currentCol = col)){
+      
+      # find nonzero elements in col. vector
+      idxNonzero = which(A[-c(1:currentRow),col]!=0) + col
+      
+      # Perform Elementary Row OPs
+      A = gaussian_Elimination(A,idxNonzero,col)
+    }
+    
+  }
+  
+  # clean output
+  zeroVecs = find_Zero_Vectors(A)
+  
+  if (length(zeroVecs) == 0){
+    A_reduced = A
+    
+    # number of rows w/o zero vectors
+    nrTest = nrow(A_reduced)
+    
+    # if the number of pivots on the diagonal submatrix of sice col x col = max rank
+    # then the result must be the identity matrix. This is not a very nice work around
+    # since actually the algo should perform gaussian elemintation of free variables.
+    if (all(diag(A_reduced) == 1)){
+      # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
+      A = diag(nrTest)
+      return(list(A=A,idxPivots=idxPivots))
+    }
+  } else {
+    A_reduced = A[-zeroVecs,]
+    
+    # number of rows w/o zero vectors
+    nrTest = nrow(A_reduced)
+    
+    # if the number of pivots on the diagonal submatrix of sice col x col = max rank
+    # then the result must be the identity matrix. This is not a very nice work around
+    # since actually the algo should perform gaussian elemintation of free variables.
+    if (all(diag(A_reduced) == 1)){
+      # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
+      
+      # TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
+      # TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
+      
+      # A = rbind(diag(nrTest),matrix(0,nrow = nr-nrTest, ncol = nc))
+      return(list(A=A,idxPivots=idxPivots))
+    }
+  }
+  
+
+  
+  
+  return(list(A=A,idxPivots=idxPivots))
+}
+
+
 
 rref2 <- function(A){
   
@@ -525,23 +657,44 @@ rref2 <- function(A){
     
   }
   
-  # # clean output
-  # A_reduced = A[-find_Zero_Vectors(A),]
-  # nrTest = ifelse(nrow(A_reduced) <  nr, nrow(A_reduced), nr)
-  # 
-  # # if the number of pivots on the diagonal submatrix of sice col x col = max rank
-  # # then the result must be the identity matrix. This is not a very nice work around
-  # # since actually the algo should perform gaussian elemintation of free variables.
-  # if (all(diag(A_reduced) == 1)){
-  #   # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
-  #   A = rbind(diag(nrTest),matrix(0,nrow = nr-nrTest, ncol = nc))
-  #   return(A)
-  # }
+  # clean output
+  zeroVecs = find_Zero_Vectors(A)
+  
+  if (length(zeroVecs) == 0){
+    A_reduced = A
+    
+    # number of rows w/o zero vectors
+    nrTest = nrow(A_reduced)
+    
+    # if the number of pivots on the diagonal submatrix of sice col x col = max rank
+    # then the result must be the identity matrix. This is not a very nice work around
+    # since actually the algo should perform gaussian elemintation of free variables.
+    if (all(diag(A_reduced) == 1)){
+      # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
+      A = diag(nrTest)
+      return(A)
+    }
+  } else {
+    A_reduced = A[-zeroVecs,]
+    
+    # number of rows w/o zero vectors
+    nrTest = nrow(A_reduced)
+    
+    # if the number of pivots on the diagonal submatrix of sice col x col = max rank
+    # then the result must be the identity matrix. This is not a very nice work around
+    # since actually the algo should perform gaussian elemintation of free variables.
+    if (all(diag(A_reduced) == 1)){
+      # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
+      A = rbind(diag(nrTest),matrix(0,nrow = nr-nrTest, ncol = nc))
+      return(A)
+    }
+  }
+  
+  
   
   
   return(A)
 }
-
 
 
 # -------------------------------------------------------------------------
@@ -819,6 +972,7 @@ remove_Parallel_Vectors <- function(A){
   # find parallel vectors
   rmIdx = unique(linDep_Cautchy_Schwartz_Matrix(A)$j)
   
+  nc = ncol(A)
   # put zero-vector and parallel vectors at the bottom
   if (!is.null(rmIdx)){
     A[rmIdx,] <- rep(0,nc)
