@@ -4,7 +4,7 @@
 Originally, I wrote these functions to verify some linear algebra exercises. As the number of functions grew, I created this repository. The functions are not efficient (it's plain R-code) nor have they been thoroughly tested. Besides, all these functions have been implemented more efficiently in other packages or even in base R. It is just a fun exercise for me to get a better understanding of linear algebra.
 
 ### To Do List:
-~~* The **rref** function does not return the reduced row echelon form, since it does not set free variables, which are located above a pivot to zero. Solution: Repeat Gaussian Elimination for free variables.
+* ~~The **rref** function does not return the reduced row echelon form, since it does not set free variables, which are located above a pivot to zero. Solution: Repeat Gaussian Elimination for free variables.~~
 * The **singular_Value_Decomposition** function does not work correctly as the eigenvectors produced by R have a random sign, thus the matrix product **PDQ^-1** (corresponds to **UΣV^-1**) does not reconstitute **A**. Solution: Implement sign-flip function from https://digital.library.unt.edu/ark:/67531/metadc900575/m2/1/high_res_d/920802.pdf.
 * The **generalized_Inverse** function, I am still trying to find a way to find a nonsingular matrix in **A** without using the builtin function **qr**. Once rref works fine, this can be used to find rank r and consequetnly to find a submatrix by checking, which rxr submatrix has a determinant > 0.
 * Once **rref** works, rewrite **rank_Matrix**.
