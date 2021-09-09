@@ -436,7 +436,8 @@ singular_Value_Decomposition <- function(A){
 }
 
 
-# Reduced Row Echelon Form ------------------------------------------------
+# Row Echelon Form --------------------------------------------------------
+
 
 ref <- function(A){
   
@@ -523,51 +524,13 @@ ref <- function(A){
       # Perform Elementary Row OPs
       A = gaussian_Elimination(A,idxNonzero,col)
     }
-    
   }
-  
-  # RM
-  
-  # # clean output
-  # zeroVecs = find_Zero_Vectors(A)
-  # 
-  # if (length(zeroVecs) == 0){
-  #   A_reduced = A
-  #   
-  #   # number of rows w/o zero vectors
-  #   nrTest = nrow(A_reduced)
-  #   
-  #   # if the number of pivots on the diagonal submatrix of sice col x col = max rank
-  #   # then the result must be the identity matrix. This is not a very nice work around
-  #   # since actually the algo should perform gaussian elemintation of free variables.
-  #   if (all(diag(A_reduced) == 1)){
-  #     # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
-  #     A = diag(nrTest)
-  #     return(list(A=A,idxPivots=idxPivots))
-  #   }
-  # } else {
-  #   A_reduced = A[-zeroVecs,]
-  #   
-  #   # number of rows w/o zero vectors
-  #   nrTest = nrow(A_reduced)
-  #   
-  #   # if the number of pivots on the diagonal submatrix of sice col x col = max rank
-  #   # then the result must be the identity matrix. This is not a very nice work around
-  #   # since actually the algo should perform gaussian elemintation of free variables.
-  #   if (all(diag(A_reduced) == 1)){
-  #     # if matrix has max rank (e.g. mxn where m <= n, then rank = m)
-  # 
-  #     # A = rbind(diag(nrTest),matrix(0,nrow = nr-nrTest, ncol = nc))
-  #     return(list(A=A,idxPivots=idxPivots))
-  #   }
-  # }
-  # 
 
-  
-  
   return(A)
 }
 
+
+# Reduced Row Echelon Form ------------------------------------------------
 
 
 rref <- function(A){
