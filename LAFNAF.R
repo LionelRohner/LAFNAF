@@ -273,8 +273,95 @@ adjugate <- function(A){
 # identified by the Cautchy-Schwartz Inequality (e.g. [2,4] = 2*[1,2]), but not
 # if lin. dep. arise from combinations of vectors (e.g. [4,0] = [2,-2] + [2,2]).
 
-
 generalized_Inverse <- function(A){
+  
+  ### step 1 : Find a LIN submatrix of order rxr 
+  message("Step 1 : Find a LIN submatrix W of order rxr in A!")
+  
+  nc = ncol(A)
+  nr = nrow(A)
+  
+  rank = rank_Matrix(A)
+  
+  
+  # Check whether A is full rank anyways
+  if (nc == nr && det(A) != 0){
+    W = A
+  } else {
+    
+    # make matrix square
+    outerBreak = FALSE
+    for (i in 1:(nr-rank+1)){
+      for (j in 1:(nc-rank+1)){
+        print(i:(i+rank-1))
+        print(j:(j+rank-1))
+        print(A[i:(i+rank-1),j:(j+rank-1)])
+        print(det(A[i:(i+rank-1),j:(j+rank-1)]))
+        if (det(A[i:(i+rank-1),j:(j+rank-1)]) != 0){
+          idxRow = c(i:(i+rank-1))
+          idxCol = c(j:(j+rank-1))
+          outerBreak = TRUE 
+          break
+        }
+        if(outerBreak){
+          break
+        }
+      }
+    }
+    
+    if (!outerBreak){
+      message("All submatrices are singular! Generalized Inverse could not be calculated")
+      return(NULL)
+    }
+    
+    
+    W <- A[idxRow, idxCol]
+  }
+  
+  # check assumptions for non-singularity
+  if (det(W) == 0){
+    message("Hope that never happens ;)")
+    return(NULL)
+  }
+  
+  ### step 2 : (W^-1)^T
+  message("Step 2 : (W^-1)^T!")
+  
+  # create adjoint matrix - adjoint() doesnt work for 2x2
+  if (dim(W)[1] == 2){
+    adj_W = -1*W
+    diag(adj_W) = rev(diag(W))
+  } else {
+    adj_W = adjugate(W)
+  }
+  
+  transp_inv_W <- t(adj_W/det(W))
+  
+  ### step 3 : replace elements of A with (W^-1)^T
+  message("Step 3 : Project rows/cols of (W^-1)^T into a a zero matrix A0 of order dim(A)!")
+  
+  # Again, if A is non-singular from scratch skip Step 3
+  if (nc == nr && det(A) != 0){
+    A0 = transp_inv_W
+  } else{
+    A0 <- 0*A
+    A0[idxRow,idxCol] = transp_inv_W
+    
+  }
+  
+  
+  ### step 4 : t(A)
+  message("Step 3 : G = A0^T!")
+  
+  G <- t(A0)
+  
+  return(G)
+}
+A%*%MASS::ginv(A)%*%A
+A%*%generalized_Inverse(A)%*%A
+
+
+generalized_Inverse_decrep <- function(A){
   
   ### step 1 : Find a LIN submatrix of order rxr 
   message("Step 1 : Find a LIN submatrix W of order rxr in A!")
@@ -403,15 +490,13 @@ rank_square_Matrix <- function(A, tol = 1e-12){
   return(sum(abs(Re(eigen(A)$values)) > tol))
 }
 
-
-# replace by own rref method when done
 rank_Matrix <- function(A){
-  return(qr$rank)
+  A = ref(A)
+  rank = nrow(A[-c(find_Zero_Vectors(A)),,drop=FALSE])
+  return(rank)  
 }
 
-
 # SVD ---------------------------------------------------------------------
-
 
 singular_Value_Decomposition <- function(A){
   # create P (left signular vectors)
@@ -437,7 +522,6 @@ singular_Value_Decomposition <- function(A){
 
 
 # Row Echelon Form --------------------------------------------------------
-
 
 ref <- function(A){
   
@@ -525,13 +609,11 @@ ref <- function(A){
       A = gaussian_Elimination(A,idxNonzero,col)
     }
   }
-
   return(A)
 }
 
 
 # Reduced Row Echelon Form ------------------------------------------------
-
 
 rref <- function(A){
   
@@ -622,8 +704,8 @@ rref <- function(A){
   # 4.) Now remove all free variable above a pivot
   
   # create matrix containing only the pivots
-  pivotsVec <- A[idxPivots$i,]
-
+  pivotsVec <- A[idxPivots$i,,drop = FALSE]
+  
   # 
   nr = nrow(pivotsVec)
   
@@ -631,7 +713,9 @@ rref <- function(A){
   # and subtracts itself from the next pivot (revPiv) vector such that the free variable
   # above the current pivot vector (piv).
   for (piv in nr:1){
+    message("piv: ", piv)
     for (revPiv in piv:1){
+      message("revPiv: ", revPiv)
       if(piv == revPiv){
         next
       }
@@ -644,7 +728,6 @@ rref <- function(A){
   
   return(A)
 }
-
 
 
 # -------------------------------------------------------------------------
