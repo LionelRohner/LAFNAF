@@ -36,7 +36,7 @@ Originally, I wrote these functions to verify some linear algebra exercises. As 
 ### Auxiliary Functions:
 * **compare_Floats:** Compare equality of floats. Principle: Compare absolute difference of two floats to a tolerance value (default = 1e-06). 
 *  **swap:** Swap rows in a some matrix **A**. Used in **rref**.
-*  **add_To_Bottom:** Add rows to the bottom of a matrix **A**.
+*  **add_To_Bottom:** Add rows to the bottom of a matrix **A**. Used in **rref**.
 *  **col_Is_All_Zero:** Check (TRUE/FALSE) whether a column is all zeros. Used in **rref**.
 *  **gaussian_Elimination:** Performs Gaussian elimination on non-zero rows of a matrix. Used in **rref**.
 *  **swap_Zero_Vectors:** Combination of **find_Zero_Vectors** and **add_to_bottom** used to rearrange rows in **rref**.
