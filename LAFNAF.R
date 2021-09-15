@@ -10,14 +10,23 @@
 
 # create linear independent vectors aka a basis ---------------------------
 
-create_Basis <- function(dim, lower = 0, upper = 9){
-  basis = matrix(sample(lower:upper,dim^2), nrow = dim)
+create_Basis <- function(dim, negative = T, upper = 9, returnMat = F){
   
-  while (det(basis) == 0){
-    basis = matrix(sample(lower:upper,dim^2), nrow = dim)
+  if (negative){
+    lower = -upper
+  } else {
+    lower = 0
   }
   
-  # return(basis) # return in matrix form
+  basis = matrix(sample(lower:upper,dim^2,replace =T), nrow = dim)
+  
+  while (det(basis) == 0){
+    basis = matrix(sample(lower:upper,dim^2,replace =T), nrow = dim)
+  }
+  
+  if (returnMat){
+    return(basis) # return in matrix form
+  }
   
   # output list of vecs instead of matrix
   out = list()
@@ -26,6 +35,7 @@ create_Basis <- function(dim, lower = 0, upper = 9){
   }
   return(out)
 }
+
 
 # Is Positive Definite ----------------------------------------------------
 
@@ -283,10 +293,14 @@ generalized_Inverse <- function(A){
   
   rank = rank_Matrix(A)
   
+
   
   # Check whether A is full rank anyways
   if (nc == nr && det(A) != 0){
     W = A
+  } else   if (rank == 1){
+    idxRow = idxCol = 1
+    W = A[idxRow,idxCol,drop=FALSE]
   } else {
     
     # make matrix square
@@ -310,7 +324,7 @@ generalized_Inverse <- function(A){
     }
     
     if (!outerBreak){
-      message("All submatrices are singular! Generalized Inverse could not be calculated")
+      message("All submatrices are singular! Generalized Inverse could not be calculated!")
       return(NULL)
     }
     
@@ -318,12 +332,7 @@ generalized_Inverse <- function(A){
     W <- A[idxRow, idxCol]
   }
   
-  # check assumptions for non-singularity
-  if (det(W) == 0){
-    message("Hope that never happens ;)")
-    return(NULL)
-  }
-  
+
   ### step 2 : (W^-1)^T
   message("Step 2 : (W^-1)^T!")
   
@@ -357,9 +366,17 @@ generalized_Inverse <- function(A){
   
   return(G)
 }
+
+A <- t(matrix(c(2,3,1,-1,
+                5,8,0,1,
+                1,2,-2,3), nrow = 4))
+
+generalized_Inverse(A)
+
 A%*%MASS::ginv(A)%*%A
 A%*%generalized_Inverse(A)%*%A
 
+# old version
 
 generalized_Inverse_decrep <- function(A){
   
@@ -474,6 +491,7 @@ inverse <- function(A){
 
 #  Orthogonalize Matrix (AAT or ATA) --------------------------------------
 
+
 orthogonalize <- function(A){
   preQ = A%*%t(A)
   Q = eigen(preQ, symmetric = T)$vectors
@@ -492,8 +510,13 @@ rank_square_Matrix <- function(A, tol = 1e-12){
 
 rank_Matrix <- function(A){
   A = ref(A)
-  rank = nrow(A[-c(find_Zero_Vectors(A)),,drop=FALSE])
-  return(rank)  
+  zeroVecsIdx = find_Zero_Vectors(A)
+  
+  if (length(zeroVecsIdx) == 0){
+    return(nrow(A))
+  } else {
+    return(nrow(A[-zeroVecsIdx,,drop=FALSE]))
+  }
 }
 
 # SVD ---------------------------------------------------------------------
@@ -508,14 +531,14 @@ singular_Value_Decomposition <- function(A){
   # get eigenvalues
   eigenVal <- eigen(A%*%t(A))$values
   
-  # create diagonal matrix of signular values
+  # create diagonal matrix of singular values
   D <- matrix(0,nrow = length(eigenVal), ncol = length(eigenVal))
   diag(D) <- sqrt(eigenVal)
   
   # output generation
   res <- list(P = P,D = D, Q = Q)
   
-  message("Warning, there may be sign ambiguity in singular vectors!!!")
+  message("Warning, the sign ambiguity of singular vectors has not yet been solved!!!")
   
   return(res)
 }
@@ -542,7 +565,7 @@ ref <- function(A){
   rmIdx = unique(linDep_Cautchy_Schwartz_Matrix(A)$j)
   
   # 1.2.) set small values to zero
-  ifelse(abs(A) <= 1e-10, 0, A)
+  A = ifelse(abs(A) <= 1e-10, 0, A)
   
   # put zero-vector and parallel vectors at the bottom
   if (!is.null(rmIdx)){
@@ -572,9 +595,7 @@ ref <- function(A){
     A = gaussian_Elimination(A,idxNonzero,currentCol)
   } 
   
-  # 2.2.) Reorganize matrix such that zero vectors are at the bottom, rm parallel vectors
-  A = swap_Zero_Vectors(A)
-  A = remove_Parallel_Vectors(A)
+
   
   # 3.) find potential next pivots and swap rows if exist
   currentCol = 2
@@ -583,6 +604,11 @@ ref <- function(A){
   
   # make loop even easier
   for (col in currentCol:nc){
+    
+    
+    # 3.2.) Reorganize matrix such that zero vectors are at the bottom, rm parallel vectors
+    A = swap_Zero_Vectors(A)
+    A = remove_Parallel_Vectors(A)
     
     # skip if col is zero
     if (all(A[-c(1:currentRow),col] == 0)){
@@ -612,6 +638,7 @@ ref <- function(A){
   return(A)
 }
 
+ref(C)
 
 # Reduced Row Echelon Form ------------------------------------------------
 
@@ -664,10 +691,6 @@ rref <- function(A){
     A = gaussian_Elimination(A,idxNonzero,currentCol)
   } 
   
-  # 2.2.) Reorganize matrix such that zero vectors are at the bottom, rm parallel vectors
-  A = swap_Zero_Vectors(A)
-  A = remove_Parallel_Vectors(A)
-  
   # 3.) find potential next pivots and swap rows if exist
   currentCol = 2
   currentRow = 1
@@ -675,6 +698,11 @@ rref <- function(A){
   
   # make loop even easier
   for (col in currentCol:nc){
+    
+    # 3.2.) Reorganize matrix such that zero vectors are at the bottom, rm parallel vectors
+    A = swap_Zero_Vectors(A)
+    A = remove_Parallel_Vectors(A)
+    
     
     # skip if col is zero
     if (all(A[-c(1:currentRow),col] == 0)){
@@ -728,6 +756,14 @@ rref <- function(A){
   
   return(A)
 }
+
+C2 = round(10*C)
+
+
+pracma::rref(C2)
+
+
+rref(C2)
 
 
 # -------------------------------------------------------------------------
@@ -1012,5 +1048,14 @@ remove_Parallel_Vectors <- function(A){
     return(add_To_Bottom(A,rmIdx))
   } else {
     return(A)
+  }
+}
+
+
+flip_sign <- function(scalar){
+  if (scalar > 0){
+    return(scalar)
+  } else {
+    return(-1*scalar)
   }
 }
