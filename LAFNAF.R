@@ -532,8 +532,15 @@ singular_Value_Decomposition <- function(A){
   eigenVal <- eigen(A%*%t(A))$values
   
   # create diagonal matrix of singular values
-  D <- matrix(0,nrow = length(eigenVal), ncol = length(eigenVal))
-  diag(D) <- sqrt(eigenVal)
+  # D <- matrix(0,nrow = length(eigenVal), ncol = length(eigenVal))
+  D <- matrix(0,nrow = length(eigenVal), ncol = length(eigenVal) + (ncol(A) - nrow(A)))
+  # zero padding adapted from ISBN 978-1-118-93514-9, p.154
+  
+  # Since AA^T or A^TA have strictly non-negative eigenvalues, as they equal
+  # the square of the eigenvalues of A, we take the abs value before, calculating
+  # the sqrt of the eigenvalues.
+  
+  diag(D) <- sqrt(abs(eigenVal))
   
   # output generation
   res <- list(P = P,D = D, Q = Q)
@@ -542,6 +549,23 @@ singular_Value_Decomposition <- function(A){
   
   return(res)
 }
+
+
+svd(A)
+res = singular_Value_Decomposition(A)
+
+orthogonalize(t(A))
+
+Y = A - res$P %*% res$D %*% t(res$Q)
+
+sign_Flip <- function(A, res){
+  
+}
+
+
+
+
+
 
 
 # Row Echelon Form --------------------------------------------------------
@@ -756,14 +780,6 @@ rref <- function(A){
   
   return(A)
 }
-
-C2 = round(10*C)
-
-
-pracma::rref(C2)
-
-
-rref(C2)
 
 
 # -------------------------------------------------------------------------
