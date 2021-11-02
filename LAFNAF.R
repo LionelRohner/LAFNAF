@@ -123,6 +123,8 @@ canonical_Form <- function(A){
 
 # Fast Exponentiation Using Canonical Form --------------------------------
 
+# CHECK IF A IS DEFECTIVE, CUZ OTHERWISE U-1 DOES NOT EXIST!!
+
 fastExp <- function(A,p){
   UDU = canonical_Form(A)
   
@@ -551,12 +553,51 @@ singular_Value_Decomposition <- function(A){
 }
 
 
+
 svd(A)
 res = singular_Value_Decomposition(A)
 
 orthogonalize(t(A))
 
+
 Y = A - res$P %*% res$D %*% t(res$Q)
+
+s_k_left = sign(t(res$P[,1])%*%Y[,1])*(res$P[,1]%*%Y[,1])^2
+
+s_k_right = sign(res$Q[,1]%*%Y[,1])*(res$Q[,1]%*%Y[,1])^2
+
+
+K = length(diag(res$D))
+
+res$P[,1] * t(res$Q[,1])
+
+for (k in 1:K){
+  
+  for (m in 1:K){
+    if (m == k){
+      next
+    }
+    
+    sum_left = sum(diag(res$D)[m] * res$P[,m] %*% res$Q[,m]) 
+    
+  }
+  
+  
+}  
+
+for (j in 1:ncol(Y)){
+  
+  for (m in 1:K){
+    if (m == j){
+      next
+    }
+    
+    Y = A - res$P[,m] %*% res$D[,m] %*% t(res$Q[,m])
+  }
+  
+}
+
+s_k_left = res$P[,1] %*% Y[,1]
 
 sign_Flip <- function(A, res){
   
